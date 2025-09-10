@@ -24,7 +24,7 @@ class BanguatClient:
     async def get_daily_usd_rate(self) -> float | None:
         """Get current USD exchange rate."""
         async with aiofiles.open(
-            "src/soap_templates/exchange_rate_daily.xml", encoding="utf-8"
+            "src/resources/soap_templates/exchange_rate_daily.xml", encoding="utf-8"
         ) as f:
             soap_body = await f.read()
 
