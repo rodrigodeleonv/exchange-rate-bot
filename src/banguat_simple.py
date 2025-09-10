@@ -7,7 +7,7 @@ from xml.etree import ElementTree as ET
 import aiofiles
 import aiohttp
 
-from config import get_config
+from src.config import get_config
 
 logger = logging.getLogger(__name__)
 
