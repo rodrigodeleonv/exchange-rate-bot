@@ -1,0 +1,47 @@
+{
+  "project": {
+    "name": "Exchange Rate Bot",
+    "type": "python",
+    "version": "1.0.0"
+  },
+  "ai_preferences": {
+    "language": "english",
+    "code_style": "ruff",
+    "type_checker": "pyright",
+    "package_manager": "uv",
+    "documentation_style": "google",
+    "prefer_async": true,
+    "include_type_hints": true,
+    "error_handling": "comprehensive"
+  },
+  "development_rules": [
+    "Always use type hints",
+    "Document in English",
+    "Implement appropriate logging",
+    "Use async/await for I/O",
+    "Handle errors robustly",
+    "Use uv run for all command execution",
+    "Run ruff for code formatting and linting",
+    "Use pyright for type checking"
+  ],
+  "dependencies": {
+    "python_version": ">=3.13",
+    "package_manager": "uv",
+    "preferred_packages": {
+      "http_client": "httpx",
+      "testing": "pytest",
+      "env_management": "python-dotenv"
+    },
+    "development_tools": {
+      "linter": "ruff",
+      "type_checker": "pyright",
+      "formatter": "ruff"
+    },
+    "commands": {
+      "run_tests": "uv run pytest",
+      "lint": "uv run ruff check",
+      "format": "uv run ruff format",
+      "type_check": "uv run pyright"
+    }
+  }
+}

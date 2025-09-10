@@ -1,0 +1,14 @@
+[project]
+name = "exchange-rate-bot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.405",
+    "pytest>=8.4.2",
+    "ruff>=0.12.12",
+]
