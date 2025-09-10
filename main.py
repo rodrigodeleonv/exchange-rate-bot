@@ -1,10 +1,10 @@
 import asyncio
-import os
 
 from aiogram import Bot, Dispatcher
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
-from dotenv import load_dotenv
+
+from src.config import get_config
 
 
 class ExchangeRateBot:
@@ -18,11 +18,8 @@ class ExchangeRateBot:
 
     def _load_config(self) -> None:
         """Load configuration from environment variables."""
-        load_dotenv()
 
-        self.bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "")
-        if not self.bot_token:
-            raise ValueError("TELEGRAM_BOT_TOKEN not found in environment variables")
+        self.bot_token = get_config().telegram_bot_token
 
     def setup(self) -> None:
         """Setup bot and dispatcher with handlers."""

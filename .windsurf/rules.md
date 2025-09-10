@@ -7,6 +7,12 @@
 - Use type hints in all functions
 - Document functions with English docstrings
 
+## Logging
+- Use logging module instead of print statements
+- Use string interpolation with %s instead of f-strings in logging calls
+- Example: `logger.info("Processing %s items", count)` instead of `logger.info(f"Processing {count} items")`
+- This prevents unnecessary string formatting when logging is disabled
+
 ## Architecture
 - Separate business logic from presentation
 - Use async/await for network operations

@@ -7,6 +7,9 @@ requires-python = ">=3.13"
 dependencies = [
     "aiogram>=3.22.0",
     "python-dotenv>=1.1.1",
+    "aiohttp>=3.9.0",
+    "lxml>=5.0.0",
+    "aiofiles>=24.1.0",
 ]
 
 [dependency-groups]
