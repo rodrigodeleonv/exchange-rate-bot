@@ -42,6 +42,7 @@ include = ["src"]
 exclude = ["**/__pycache__"]
 pythonVersion = "3.13"
 typeCheckingMode = "strict"
+reportUnusedFunction = "none"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
