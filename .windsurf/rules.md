@@ -18,6 +18,15 @@
 - Run commands with `uv run <COMMAND>`
 - Use uv for dependency management and virtual environments
 
+## Process Management
+- Before running long-running applications (like `uv run python main.py`, `uv run python manage.py`, etc.), always check for and terminate existing processes first
+- Use `pkill -f "python main.py"` or similar to kill existing processes
+- This prevents port conflicts and ensures clean application restarts
+- Example workflow:
+  1. `pkill -f "python main.py"` (kill existing)
+  2. `uv run python main.py` (start new instance)
+- Apply this rule for any command that starts a server, bot, or long-running process
+
 ## APIs and Dependencies
 - Use httpx for HTTP calls
 - Implement rate limiting for external APIs
