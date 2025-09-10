@@ -36,6 +36,25 @@
 - Run quality checks with `uv run ruff check` and `uv run pyright`
 - Fix formatting with `uv run ruff format`
 
+## SOLID Principles
+- **Single Responsibility**: Each class should have only one reason to change
+- **Open/Closed**: Classes should be open for extension, closed for modification
+- **Liskov Substitution**: Derived classes must be substitutable for their base classes
+- **Interface Segregation**: Clients should not depend on interfaces they don't use
+- **Dependency Inversion**: Depend on abstractions, not concretions
+
+## Design Patterns
+- Suggest appropriate design patterns when beneficial:
+  - **Strategy Pattern**: For different exchange rate providers
+  - **Factory Pattern**: For creating API clients or handlers
+  - **Observer Pattern**: For rate change notifications
+  - **Command Pattern**: For bot command handling
+  - **Repository Pattern**: For data access abstraction
+  - **Dependency Injection**: For loose coupling and testability
+- Always explain why a pattern is recommended
+- Prefer composition over inheritance
+- Use Protocol classes for defining interfaces in Python
+
 ## Documentation
 - README.md should include installation instructions
 - Document API endpoints if applicable

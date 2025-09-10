@@ -22,7 +22,11 @@
     "Handle errors robustly",
     "Use uv run for all command execution",
     "Run ruff for code formatting and linting",
-    "Use pyright for type checking"
+    "Use pyright for type checking",
+    "Apply SOLID principles in class design",
+    "Suggest design patterns when beneficial",
+    "Prefer composition over inheritance",
+    "Use Protocol classes for interfaces"
   ],
   "dependencies": {
     "python_version": ">=3.13",
@@ -42,6 +46,22 @@
       "lint": "uv run ruff check",
       "format": "uv run ruff format",
       "type_check": "uv run pyright"
+    },
+    "architecture_principles": {
+      "solid": {
+        "single_responsibility": "Each class should have only one reason to change",
+        "open_closed": "Open for extension, closed for modification",
+        "liskov_substitution": "Derived classes must be substitutable for base classes",
+        "interface_segregation": "Clients should not depend on unused interfaces",
+        "dependency_inversion": "Depend on abstractions, not concretions"
+      },
+      "preferred_patterns": [
+        "Strategy Pattern for exchange rate providers",
+        "Factory Pattern for API clients",
+        "Repository Pattern for data access",
+        "Dependency Injection for loose coupling",
+        "Command Pattern for bot commands"
+      ]
     }
   }
 }
