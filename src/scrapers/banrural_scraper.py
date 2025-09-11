@@ -5,7 +5,6 @@ import logging
 import re
 
 import aiohttp
-from bs4 import BeautifulSoup
 
 from src.config import get_config
 
@@ -87,11 +86,7 @@ class BanruralScraper:
                     response.raise_for_status()
                     html_content = await response.text()
 
-                    # Parse HTML with BeautifulSoup
-                    soup = BeautifulSoup(html_content, "html.parser")
-
-                    # Look for exchange rate information
-                    rate = await self._extract_rate_from_html(soup, html_content)
+                    rate = await self._extract_rate_from_html(html_content)
 
                     if rate:
                         logger.info(
@@ -106,9 +101,7 @@ class BanruralScraper:
             logger.error("Error scraping web: %s", e)
             return None
 
-    async def _extract_rate_from_html(
-        self, soup: BeautifulSoup, html_content: str
-    ) -> float | None:
+    async def _extract_rate_from_html(self, html_content: str) -> float | None:
         """Extract exchange rate from HTML content (fallback method)."""
 
         # Look for the specific rate pattern in HTML
