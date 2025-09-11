@@ -6,11 +6,12 @@ import logging
 import aiohttp
 
 from src.config import get_config
+from src.scrapers.base_scraper import ScraperBase
 
 logger = logging.getLogger(__name__)
 
 
-class BanruralScraper:
+class BanruralScraper(ScraperBase):
     """Scraper for Banrural exchange rates."""
 
     BASE_URL = get_config().banrural_base_url

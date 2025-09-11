@@ -8,11 +8,12 @@ import aiofiles
 import aiohttp
 
 from src.config import get_config
+from src.scrapers.base_scraper import ScraperBase
 
 logger = logging.getLogger(__name__)
 
 
-class BanguatClient:
+class BanguatClient(ScraperBase):
     """Simple async client for Banco de Guatemala exchange rate API."""
 
     BASE_URL = get_config().banguat_base_url
@@ -21,7 +22,7 @@ class BanguatClient:
         """Initialize the client."""
         self.timeout = aiohttp.ClientTimeout(total=timeout)
 
-    async def get_daily_usd_rate(self) -> float | None:
+    async def get_usd_buy_rate(self) -> float | None:
         """Get current USD exchange rate."""
         async with aiofiles.open(
             "src/resources/soap_templates/exchange_rate_daily.xml", encoding="utf-8"
@@ -69,7 +70,7 @@ class BanguatClient:
 async def get_current_usd_rate() -> float | None:
     """Get current USD exchange rate quickly."""
     client = BanguatClient()
-    return await client.get_daily_usd_rate()
+    return await client.get_usd_buy_rate()
 
 
 if __name__ == "__main__":
