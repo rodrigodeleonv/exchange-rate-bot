@@ -31,6 +31,11 @@ class Config:
     # Telegram
     telegram_bot_token: str
 
+    # Webhook configuration
+    webhook_url: str
+    host: str
+    port: int
+
     # Scrapers
     banguat_base_url: str
     nexa_base_url: str
@@ -54,6 +59,9 @@ def get_config() -> Config:
 
     return Config(
         telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN", ""),
+        webhook_url=os.getenv("WEBHOOK_URL", ""),
+        host=os.getenv("HOST", "0.0.0.0"),
+        port=int(os.getenv("PORT", "8000")),
         banguat_base_url=os.getenv(
             "BANGUAT_BASE_URL",
             "https://www.banguat.gob.gt/variables/ws/TipoCambio.asmx",
