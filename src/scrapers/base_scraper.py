@@ -8,4 +8,4 @@ class ScraperBase(Protocol):
 
     async def get_usd_buy_rate(self) -> float | None:
         """Get current USD buy rate."""
-        raise NotImplementedError
+        ...

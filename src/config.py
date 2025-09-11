@@ -7,18 +7,37 @@ from functools import lru_cache
 from dotenv import load_dotenv
 
 
-@dataclass
+@dataclass(frozen=True)
+class ScrapperHeaders:
+    """User agent class."""
+
+    user_agent: str = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    )
+    accept: str = (
+        "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+    )
+    accept_language: str = "es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3"
+    accept_encoding: str = "gzip, deflate, br"
+    connection: str = "keep-alive"
+    upgrade_insec_req: str = "1"
+
+
+@dataclass(frozen=True)
 class Config:
     """Main configuration class."""
 
+    # Telegram
     telegram_bot_token: str
 
+    # Scrapers
     banguat_base_url: str
-
     nexa_base_url: str
-
     banrural_base_url: str
+    scrapper_headers: ScrapperHeaders
 
+    # Logging
     logging_level: str
     logging_format: str
 
@@ -41,6 +60,7 @@ def get_config() -> Config:
         ),
         nexa_base_url="https://www.nexabanco.com/",
         banrural_base_url="https://www.banrural.com.gt/site/personas",
+        scrapper_headers=ScrapperHeaders(),
         logging_level=os.getenv("LOG_LEVEL", "INFO"),
         logging_format=os.getenv("LOG_FORMAT", ""),
     )

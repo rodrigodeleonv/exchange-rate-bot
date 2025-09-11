@@ -20,17 +20,14 @@ class BanruralScraper(ScraperBase):
         """Initialize the scraper."""
         self.timeout = aiohttp.ClientTimeout(total=timeout)
         self.headers = {
-            "User-Agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            "User-Agent": get_config().scrapper_headers.user_agent,
+            "Accept": get_config().scrapper_headers.accept,
+            "Accept-Language": get_config().scrapper_headers.accept_language,
+            "Accept-Encoding": get_config().scrapper_headers.accept_encoding,
+            "Connection": get_config().scrapper_headers.connection,
+            "Upgrade-Insecure-Requests": (
+                get_config().scrapper_headers.upgrade_insec_req
             ),
-            "Accept": (
-                "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
-            ),
-            "Accept-Language": "es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Connection": "keep-alive",
-            "Upgrade-Insecure-Requests": "1",
         }
 
     async def get_usd_buy_rate(self) -> float | None:
