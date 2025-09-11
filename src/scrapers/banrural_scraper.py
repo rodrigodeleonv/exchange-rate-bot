@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-import re
 
 import aiohttp
 
@@ -37,12 +36,7 @@ class BanruralScraper:
         """Get USD buy rate from Banrural API."""
         try:
             logger.debug("Trying to get USD buy rate from Banrural API...")
-            rate = await self._get_rate_from_api()
-            if rate:
-                return rate
-
-            logger.debug("API request failed, falling back to web scraping...")
-            return await self._get_rate_from_web()
+            return await self._get_rate_from_api()
 
         except Exception as e:
             logger.error("Error getting USD buy rate from Banrural: %s", e)
@@ -73,55 +67,6 @@ class BanruralScraper:
 
         except Exception as e:
             logger.debug("API request failed: %s", e)
-
-        return None
-
-    async def _get_rate_from_web(self) -> float | None:
-        """Fallback: get rate from web scraping."""
-        try:
-            async with aiohttp.ClientSession(
-                timeout=self.timeout, headers=self.headers
-            ) as session:
-                async with session.get(self.BASE_URL) as response:
-                    response.raise_for_status()
-                    html_content = await response.text()
-
-                    rate = await self._extract_rate_from_html(html_content)
-
-                    if rate:
-                        logger.info(
-                            "Successfully extracted USD buy rate from web: %s", rate
-                        )
-                        return rate
-                    else:
-                        logger.warning("Could not find USD buy rate in HTML content")
-                        return None
-
-        except Exception as e:
-            logger.error("Error scraping web: %s", e)
-            return None
-
-    async def _extract_rate_from_html(self, html_content: str) -> float | None:
-        """Extract exchange rate from HTML content (fallback method)."""
-
-        # Look for the specific rate pattern in HTML
-        # Since Banrural loads data dynamically, this is mainly a fallback
-        rate_patterns = [
-            r"Q\s*(\d+\.\d+)",
-            r"(\d+\.\d+)\s*Q",
-            r"compra\s*[:=]\s*(\d+\.\d+)",
-        ]
-
-        for pattern in rate_patterns:
-            matches = re.findall(pattern, html_content, re.IGNORECASE)
-            for match in matches:
-                try:
-                    rate = float(match)
-                    if 7.0 <= rate <= 9.0:
-                        logger.debug("Found rate using pattern %s: %s", pattern, rate)
-                        return rate
-                except ValueError:
-                    continue
 
         return None
 
