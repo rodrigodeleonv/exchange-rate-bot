@@ -17,6 +17,8 @@ class Config:
 
     nexa_base_url: str
 
+    banrural_base_url: str
+
     logging_level: str
     logging_format: str
 
@@ -38,6 +40,7 @@ def get_config() -> Config:
             "https://www.banguat.gob.gt/variables/ws/TipoCambio.asmx",
         ),
         nexa_base_url="https://www.nexabanco.com/",
+        banrural_base_url="https://www.banrural.com.gt/site/personas",
         logging_level=os.getenv("LOG_LEVEL", "INFO"),
         logging_format=os.getenv("LOG_FORMAT", ""),
     )
