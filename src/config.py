@@ -12,10 +12,11 @@ class Config:
     """Main configuration class."""
 
     telegram_bot_token: str
+
     banguat_base_url: str
-    banguat_timeout: int
-    banguat_soap_namespace: str
-    banguat_soap_action_prefix: str
+
+    nexa_base_url: str
+
     logging_level: str
     logging_format: str
 
@@ -36,9 +37,7 @@ def get_config() -> Config:
             "BANGUAT_BASE_URL",
             "https://www.banguat.gob.gt/variables/ws/TipoCambio.asmx",
         ),
-        banguat_timeout=30,
-        banguat_soap_namespace=os.getenv("BANGUAT_SOAP_NAMESPACE", ""),
-        banguat_soap_action_prefix=os.getenv("BANGUAT_SOAP_ACTION_PREFIX", ""),
+        nexa_base_url="https://www.nexabanco.com/",
         logging_level=os.getenv("LOG_LEVEL", "INFO"),
         logging_format=os.getenv("LOG_FORMAT", ""),
     )
