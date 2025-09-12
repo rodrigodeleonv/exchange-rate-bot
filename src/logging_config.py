@@ -99,27 +99,3 @@ def _configure_third_party_loggers() -> None:
 
     # Keep aiogram logs at INFO level for debugging
     logging.getLogger("aiogram").setLevel(logging.INFO)
-
-
-def get_logger(name: str) -> logging.Logger:
-    """
-    Get a logger instance with the given name.
-
-    Args:
-        name: Logger name, typically __name__
-
-    Returns:
-        Configured logger instance
-    """
-    return logging.getLogger(name)
-
-
-class LoggerMixin:
-    """Mixin class to add logging capability to any class."""
-
-    @property
-    def logger(self) -> logging.Logger:
-        """Get logger for this class."""
-        module = self.__class__.__module__
-        name = self.__class__.__name__
-        return logging.getLogger(f"{module}.{name}")

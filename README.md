@@ -4,6 +4,11 @@
 
 - [Nexa Banco](https://www.nexabanco.com/)
 
+- [Pinggy](https://pinggy.io/)
+
+```bash
+ssh -p 443 -R0:127.0.0.1:8000 qr@free.pinggy.io
+```
 
 ## aiohttp
 
