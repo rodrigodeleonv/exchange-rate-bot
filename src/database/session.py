@@ -123,3 +123,4 @@ async def get_session() -> AsyncGenerator[AsyncSession]:
 async def close_database() -> None:
     """Close database connection."""
     await get_db_manager().close()
+    logger.info("Database connection closed")
