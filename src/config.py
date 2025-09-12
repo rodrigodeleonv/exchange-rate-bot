@@ -33,9 +33,10 @@ class Config:
 
     # Webhook configuration
     webhook_url: str
+    webhook_secret_token: str
+    cleanup_webhook_on_shutdown: bool
     host: str
     port: int
-    cleanup_webhook_on_shutdown: bool
 
     # Scrapers
     banguat_base_url: str
@@ -60,6 +61,7 @@ def get_config() -> Config:
     return Config(
         telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN", ""),
         webhook_url=os.getenv("WEBHOOK_URL", ""),
+        webhook_secret_token=os.getenv("WEBHOOK_SECRET_TOKEN", ""),
         host=os.getenv("HOST", "0.0.0.0"),
         port=int(os.getenv("PORT", "8000")),
         cleanup_webhook_on_shutdown=os.getenv(

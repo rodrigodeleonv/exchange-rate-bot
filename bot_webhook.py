@@ -71,6 +71,18 @@ class WebhookServer:
         async def webhook_handler(request: Request) -> Response:
             """Handle incoming webhook updates from Telegram."""
             try:
+                secret_token = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
+
+                if not self.bot.webhook_secret_token:
+                    logger.error(
+                        "Webhook secret token not configured - rejecting request"
+                    )
+                    return Response(status_code=401)
+
+                if not secret_token or secret_token != self.bot.webhook_secret_token:
+                    logger.warning("Invalid or missing secret token in webhook request")
+                    return Response(status_code=401)
+
                 update_data = await request.json()
                 update = Update.model_validate(update_data)
                 await self.bot.process_update(update)

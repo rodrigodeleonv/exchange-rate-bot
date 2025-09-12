@@ -26,11 +26,11 @@ class TelegramBot:
 
     def _load_config(self) -> None:
         """Load configuration from environment."""
-        config = get_config()
-        self.bot_token = config.telegram_bot_token
-        self.webhook_url = config.webhook_url
-        self.host = config.host
-        self.port = config.port
+        self.bot_token = get_config().telegram_bot_token
+        self.webhook_url = get_config().webhook_url
+        self.webhook_secret_token = get_config().webhook_secret_token
+        self.host = get_config().host
+        self.port = get_config().port
 
     def setup(self) -> None:
         """Setup bot with dependency injection pattern."""
@@ -61,10 +61,18 @@ class TelegramBot:
         """Set webhook URL for the bot."""
         if not self.bot or not self.webhook_url:
             raise RuntimeError("Bot or webhook URL not configured")
+
+        if not self.webhook_secret_token:
+            raise RuntimeError("Webhook secret token is required for security")
+
         logger.info("Setting webhook to: %s", self.webhook_url)
 
-        await self.bot.set_webhook(url=self.webhook_url, drop_pending_updates=True)
-        logger.info("✅ Webhook set successfully")
+        await self.bot.set_webhook(
+            url=self.webhook_url,
+            secret_token=self.webhook_secret_token,
+            drop_pending_updates=True,
+        )
+        logger.info("✅ Webhook set successfully with secret token")
 
     async def delete_webhook(self) -> None:
         """Delete webhook (useful for switching back to polling)."""
