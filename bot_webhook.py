@@ -94,13 +94,9 @@ class WebhookServer:
         @app.get("/health")
         async def health_check() -> dict[str, Any]:
             """Health check endpoint."""
-            return {
-                "status": "healthy",
-                "bot_configured": self.bot.bot is not None,
-                "webhook_url": self.bot.webhook_url,
-            }
+            return {"status": "ok"}
 
-        @app.post("/set-webhook")
+        @app.post("/testing/set-webhook", tags=["Testing"])
         async def set_webhook_endpoint() -> dict[str, str]:
             """Manually set webhook (for testing/management)."""
             try:
@@ -110,15 +106,24 @@ class WebhookServer:
                 logger.error(f"Error setting webhook: {e}")
                 return {"error": str(e)}
 
-        @app.post("/delete-webhook")
+        @app.post("/testing/delete-webhook", tags=["Testing"])
         async def delete_webhook_endpoint() -> dict[str, str]:
-            """Manually delete webhook (switch back to polling)."""
+            """Manually delete webhook."""
             try:
                 await self.bot.delete_webhook()
                 return {"message": "Webhook deleted successfully"}
             except Exception as e:
                 logger.error(f"Error deleting webhook: {e}")
                 return {"error": str(e)}
+
+        @app.get("/testing/status", tags=["Testing"])
+        async def status() -> dict[str, Any]:
+            """Bot status endpoint."""
+            return {
+                "status": "healthy",
+                "bot_configured": self.bot.bot is not None,
+                "webhook_url": self.bot.webhook_url,
+            }
 
     def run(self, run_dev: bool = False) -> None:
         """Run the webhook server."""
