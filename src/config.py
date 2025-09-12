@@ -45,7 +45,6 @@ class Config:
 
     # Logging
     logging_level: str
-    logging_format: str
 
 
 @lru_cache(maxsize=1)
@@ -75,5 +74,4 @@ def get_config() -> Config:
         banrural_base_url="https://www.banrural.com.gt/site/personas",
         scrapper_headers=ScrapperHeaders(),
         logging_level=os.getenv("LOG_LEVEL", "INFO"),
-        logging_format=os.getenv("LOG_FORMAT", ""),
     )

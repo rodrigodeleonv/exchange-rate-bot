@@ -1,20 +1,19 @@
 """Exchange rate Telegram bot."""
 
 import asyncio
-import logging
 
 from aiogram import Bot, Dispatcher
 from aiogram.filters import Command, CommandStart
 
 from src.config import get_config
 from src.handlers.bot_handlers import BotHandlers
+from src.logging_config import get_logger, setup_logging
 from src.services.bot_service import BotService
 from src.services.exchange_rate_service import ExchangeRateService
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-
-logger = logging.getLogger(__name__)
+# Setup centralized logging
+setup_logging()
+logger = get_logger(__name__)
 
 
 class ExchangeRateBot:
