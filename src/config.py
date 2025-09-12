@@ -44,6 +44,10 @@ class Config:
     banrural_base_url: str
     scrapper_headers: ScrapperHeaders
 
+    # Database configuration
+    database_url: str
+    database_echo: bool
+
     # Logging
     logging_level: str
 
@@ -76,4 +80,6 @@ def get_config() -> Config:
         banrural_base_url="https://www.banrural.com.gt/site/personas",
         scrapper_headers=ScrapperHeaders(),
         logging_level=os.getenv("LOG_LEVEL", "INFO"),
+        database_url=os.getenv("DATABASE_URL", ""),
+        database_echo=os.getenv("DATABASE_ECHO", "False").lower() == "true",
     )
