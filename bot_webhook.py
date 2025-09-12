@@ -2,7 +2,9 @@
 
 import logging
 from contextlib import asynccontextmanager
+from typing import Any
 
+import uvicorn
 from aiogram import Bot, Dispatcher
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Update
@@ -30,10 +32,11 @@ class ExchangeRateBotWebhook:
 
     def _load_config(self) -> None:
         """Load configuration from environment."""
-        self.bot_token = get_config().telegram_bot_token
-        self.webhook_url = get_config().webhook_url
-        self.host = get_config().host
-        self.port = get_config().port
+        config = get_config()
+        self.bot_token = config.telegram_bot_token
+        self.webhook_url = config.webhook_url
+        self.host = config.host
+        self.port = config.port
 
     def setup(self) -> None:
         """Setup bot with dependency injection pattern."""
@@ -90,117 +93,130 @@ class ExchangeRateBotWebhook:
             await self.bot.session.close()
 
 
-# Global bot instance
-bot_instance = ExchangeRateBotWebhook()
+class WebhookServer:
+    """FastAPI webhook server encapsulating all web server logic."""
+
+    def __init__(self, bot_instance: ExchangeRateBotWebhook):
+        """Initialize webhook server with bot instance."""
+        self.bot = bot_instance
+        self.app = self._create_app()
+
+    def _create_app(self) -> FastAPI:
+        """Create and configure FastAPI application."""
+        app = FastAPI(
+            title="Exchange Rate Bot Webhook",
+            description="Telegram bot for exchange rates with webhook support",
+            version="1.0.0",
+            lifespan=self._lifespan,
+        )
+
+        # Register routes
+        self._register_routes(app)
+        return app
+
+    @asynccontextmanager
+    async def _lifespan(self, app: FastAPI):
+        """FastAPI lifespan context manager for startup and shutdown."""
+        # Startup
+        logger.info("🚀 Starting Exchange Rate Bot webhook...")
+
+        try:
+            self.bot.setup()
+
+            if self.bot.webhook_url:
+                await self.bot.set_webhook()
+            else:
+                logger.warning("⚠️ WEBHOOK_URL not configured. Set it in your .env file")
+
+            logger.info("✅ Bot initialized successfully")
+            yield
+
+        except Exception as e:
+            logger.error(f"❌ Error during startup: {e}")
+            raise
+
+        # Shutdown
+        logger.info("🛑 Shutting down bot...")
+        await self.bot.close()
+        logger.info("👋 Bot stopped")
+
+    def _register_routes(self, app: FastAPI) -> None:
+        """Register all FastAPI routes."""
+
+        @app.post("/webhook")
+        async def webhook_handler(request: Request) -> Response:
+            """Handle incoming webhook updates from Telegram."""
+            try:
+                update_data = await request.json()
+                update = Update.model_validate(update_data)
+                await self.bot.process_update(update)
+                return Response(status_code=200)
+            except Exception as e:
+                logger.error(f"❌ Error processing webhook: {e}")
+                return Response(status_code=500)
+
+        @app.get("/health")
+        async def health_check() -> dict[str, Any]:
+            """Health check endpoint."""
+            return {
+                "status": "healthy",
+                "bot_configured": self.bot.bot is not None,
+                "webhook_url": self.bot.webhook_url,
+            }
+
+        @app.post("/set-webhook")
+        async def set_webhook_endpoint() -> dict[str, str]:
+            """Manually set webhook (for testing/management)."""
+            try:
+                await self.bot.set_webhook()
+                return {"message": "Webhook set successfully"}
+            except Exception as e:
+                logger.error(f"Error setting webhook: {e}")
+                return {"error": str(e)}
+
+        @app.post("/delete-webhook")
+        async def delete_webhook_endpoint() -> dict[str, str]:
+            """Manually delete webhook (switch back to polling)."""
+            try:
+                await self.bot.delete_webhook()
+                return {"message": "Webhook deleted successfully"}
+            except Exception as e:
+                logger.error(f"Error deleting webhook: {e}")
+                return {"error": str(e)}
+
+    def run(self, run_dev: bool = False) -> None:
+        """Run the webhook server."""
+        try:
+            logger.info("🌐 Starting FastAPI server. Production mode: %s", not run_dev)
+            uvicorn.run(
+                self.app if not run_dev else "bot_webhook:create_app",
+                host=self.bot.host,
+                port=self.bot.port,
+                log_level=get_config().logging_level.lower(),
+                reload=run_dev,
+            )
+        except KeyboardInterrupt:
+            logger.info("👋 Server stopped by user")
+        except Exception as e:
+            logger.exception(f"❌ Server error: {e}")
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """FastAPI lifespan context manager for startup and shutdown."""
-    # Startup
-    logger.info("🚀 Starting Exchange Rate Bot webhook...")
-
-    try:
-        bot_instance.setup()
-
-        if bot_instance.webhook_url:
-            await bot_instance.set_webhook()
-        else:
-            logger.warning("⚠️ WEBHOOK_URL not configured. Set it in your .env file")
-
-        logger.info("✅ Bot initialized successfully")
-        yield
-
-    except Exception as e:
-        logger.error(f"❌ Error during startup: {e}")
-        raise
-
-    # Shutdown
-    logger.info("🛑 Shutting down bot...")
-    await bot_instance.close()
-    logger.info("👋 Bot stopped")
+def create_app() -> FastAPI:
+    """Factory function to create FastAPI app (for uvicorn reload)."""
+    bot_instance = ExchangeRateBotWebhook()
+    server = WebhookServer(bot_instance)
+    return server.app
 
 
-# Create FastAPI app
-app = FastAPI(
-    title="Exchange Rate Bot Webhook",
-    description="Telegram bot for exchange rates with webhook support",
-    version="1.0.0",
-    lifespan=lifespan,
-)
+def main() -> None:
+    """Main application entry point."""
+    # Create bot and server instances
+    bot_instance = ExchangeRateBotWebhook()
+    server = WebhookServer(bot_instance)
 
-
-@app.post("/webhook")
-async def webhook_handler(request: Request) -> Response:
-    """Handle incoming webhook updates from Telegram."""
-    try:
-        # Get update data from request
-        update_data = await request.json()
-
-        # Create Update object
-        update = Update.model_validate(update_data)
-
-        # Process the update
-        await bot_instance.process_update(update)
-
-        return Response(status_code=200)
-
-    except Exception as e:
-        logger.error(f"❌ Error processing webhook: {e}")
-        return Response(status_code=500)
-
-
-@app.get("/")
-async def root():
-    """Root endpoint."""
-    return {"message": "Exchange Rate Bot Webhook"}
-
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint."""
-    return {
-        "status": "healthy",
-        "bot_configured": bot_instance.bot is not None,
-        "webhook_url": bot_instance.webhook_url,
-    }
-
-
-@app.post("/set-webhook")
-async def set_webhook_endpoint():
-    """Manually set webhook (for testing/management)."""
-    try:
-        await bot_instance.set_webhook()
-        return {"message": "Webhook set successfully"}
-    except Exception as e:
-        logger.error(f"Error setting webhook: {e}")
-        return {"error": str(e)}
-
-
-@app.post("/delete-webhook")
-async def delete_webhook_endpoint():
-    """Manually delete webhook (switch back to polling)."""
-    try:
-        await bot_instance.delete_webhook()
-        return {"message": "Webhook deleted successfully"}
-    except Exception as e:
-        logger.error(f"Error deleting webhook: {e}")
-        return {"error": str(e)}
+    # Run server in development mode
+    server.run(run_dev=True)
 
 
 if __name__ == "__main__":
-    import uvicorn
-
-    try:
-        logger.info("🌐 Starting FastAPI server...")
-        uvicorn.run(
-            "bot_webhook:app",
-            host=bot_instance.host,
-            port=bot_instance.port,
-            reload=True,
-            log_level="info",
-        )
-    except KeyboardInterrupt:
-        logger.info("👋 Server stopped by user")
-    except Exception as e:
-        logger.error(f"❌ Server error: {e}")
+    main()
