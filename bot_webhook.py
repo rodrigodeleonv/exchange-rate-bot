@@ -60,7 +60,7 @@ class WebhookServer:
 
         # Shutdown
         logger.info("🛑 Shutting down bot...")
-        await self.bot.close()
+        await self.bot.close(cleanup_webhook=get_config().cleanup_webhook_on_shutdown)
         logger.info("👋 Bot stopped")
 
     def _register_routes(self, app: FastAPI) -> None:

@@ -35,6 +35,7 @@ class Config:
     webhook_url: str
     host: str
     port: int
+    cleanup_webhook_on_shutdown: bool
 
     # Scrapers
     banguat_base_url: str
@@ -62,6 +63,10 @@ def get_config() -> Config:
         webhook_url=os.getenv("WEBHOOK_URL", ""),
         host=os.getenv("HOST", "0.0.0.0"),
         port=int(os.getenv("PORT", "8000")),
+        cleanup_webhook_on_shutdown=os.getenv(
+            "CLEANUP_WEBHOOK_ON_SHUTDOWN", "False"
+        ).lower()
+        == "true",
         banguat_base_url=os.getenv(
             "BANGUAT_BASE_URL",
             "https://www.banguat.gob.gt/variables/ws/TipoCambio.asmx",

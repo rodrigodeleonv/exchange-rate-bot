@@ -81,8 +81,14 @@ class TelegramBot:
 
         await self.dp.feed_update(bot=self.bot, update=update)
 
-    async def close(self) -> None:
-        """Close bot session."""
+    async def close(self, cleanup_webhook: bool = False) -> None:
+        """Close bot session and optionally cleanup webhook."""
+        if cleanup_webhook and self.bot:
+            try:
+                await self.delete_webhook()
+            except Exception as e:
+                logger.warning(f"Failed to cleanup webhook: {e}")
+
         if self.bot:
             await self.bot.session.close()
 
