@@ -30,12 +30,10 @@ class ExchangeRateBotWebhook:
 
     def _load_config(self) -> None:
         """Load configuration from environment."""
-        config = get_config()
-        self.bot_token = config.telegram_bot_token
-        self.webhook_url = getattr(config, "webhook_url", None)
-        self.webhook_path = "/webhook"
-        self.host = getattr(config, "host", "0.0.0.0")
-        self.port = getattr(config, "port", 8000)
+        self.bot_token = get_config().telegram_bot_token
+        self.webhook_url = get_config().webhook_url
+        self.host = get_config().host
+        self.port = get_config().port
 
     def setup(self) -> None:
         """Setup bot with dependency injection pattern."""
@@ -66,10 +64,9 @@ class ExchangeRateBotWebhook:
         """Set webhook URL for the bot."""
         if not self.bot or not self.webhook_url:
             raise RuntimeError("Bot or webhook URL not configured")
-        webhook_full_url = f"{self.webhook_url}{self.webhook_path}"
-        logger.info(f"Setting webhook to: {webhook_full_url}")
+        logger.info("Setting webhook to: %s", self.webhook_url)
 
-        await self.bot.set_webhook(url=webhook_full_url, drop_pending_updates=True)
+        await self.bot.set_webhook(url=self.webhook_url, drop_pending_updates=True)
         logger.info("✅ Webhook set successfully")
 
     async def delete_webhook(self) -> None:
@@ -197,7 +194,7 @@ if __name__ == "__main__":
     try:
         logger.info("🌐 Starting FastAPI server...")
         uvicorn.run(
-            "main_webhook:app",
+            "bot_webhook:app",
             host=bot_instance.host,
             port=bot_instance.port,
             reload=True,
