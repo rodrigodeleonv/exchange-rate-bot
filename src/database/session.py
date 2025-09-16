@@ -13,7 +13,6 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from src.config import get_config
-from src.database.base import Base
 
 logger = logging.getLogger(__name__)
 
@@ -59,16 +58,6 @@ class DatabaseManager:
 
         logger.info("Database initialized")
 
-    async def create_tables(self) -> None:
-        """Create all database tables."""
-        if not self._engine:
-            raise RuntimeError("Database not initialized. Call initialize() first.")
-
-        async with self._engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-
-        logger.info("Database tables created")
-
     @asynccontextmanager
     async def get_session(self) -> AsyncGenerator[AsyncSession]:
         """Get async database session context manager."""
@@ -102,20 +91,10 @@ def get_db_manager() -> DatabaseManager:
     return DatabaseManager()
 
 
-def init_database(database_url: str | None = None) -> None:
-    """Initialize database using the global manager."""
-    get_db_manager().initialize(database_url or get_config().database_url)
-
-
-# TODO: Add alembic support
-async def create_tables() -> None:
-    """Create all database tables using the global manager."""
-    await get_db_manager().create_tables()
-
-
 @asynccontextmanager
-async def get_session() -> AsyncGenerator[AsyncSession]:
+async def get_session(database_url: str | None = None) -> AsyncGenerator[AsyncSession]:
     """Get async database session using the global manager."""
+    get_db_manager().initialize(database_url or get_config().database_url)
     async with get_db_manager().get_session() as session:
         yield session
 

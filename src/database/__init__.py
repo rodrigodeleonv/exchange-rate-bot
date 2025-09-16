@@ -1,22 +1,18 @@
-"""Database package for SQLAlchemy async configuration."""
+"""Database module initialization."""
 
 from .base import Base
-from .models import ExchangeRate, Institution
-from .session import (
-    close_database,
-    create_tables,
-    get_db_manager,
-    get_session,
-    init_database,
+from .models import (
+    ExchangeRate,
+    Institution,
+    TelegramNotificationSubscription,
 )
+from .session import DatabaseManager, get_session
 
 __all__ = [
     "Base",
-    "Institution",
     "ExchangeRate",
+    "Institution",
+    "TelegramNotificationSubscription",
+    "DatabaseManager",
     "get_session",
-    "init_database",
-    "create_tables",
-    "close_database",
-    "get_db_manager",
 ]
