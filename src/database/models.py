@@ -82,3 +82,23 @@ class ExchangeRate(Base):
         Index("idx_exchange_rate_institution", "institution_id"),
         Index("idx_exchange_rate_recorded_at", "recorded_at"),
     )
+
+
+class TelegramNotificationSubscription(Base):
+    """Notification subscription model for storing notification subscriptions."""
+
+    __tablename__ = "notification_subscriptions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    chat_id: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    # Metadata
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return f"<NotificationSubscription(id={self.id})>"
+
+    __table_args__ = (Index("idx_notification_chat_id", "chat_id"),)
