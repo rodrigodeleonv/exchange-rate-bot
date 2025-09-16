@@ -43,7 +43,7 @@ class DatabaseManager:
         self._engine: AsyncEngine | None = None
         self._session_maker: async_sessionmaker[AsyncSession] | None = None
 
-    def initialize(self, database_url: str) -> None:
+    def initialize(self) -> None:
         """Initialize async database engine and session maker."""
 
         if self._engine is not None:
@@ -51,7 +51,7 @@ class DatabaseManager:
             return
 
         # Create async engine and cache it
-        self._engine = get_engine(database_url)
+        self._engine = get_engine(get_config().database_url)
 
         # Create session maker and cache it
         self._session_maker = get_sessionmaker()
@@ -94,7 +94,7 @@ def get_db_manager() -> DatabaseManager:
 @asynccontextmanager
 async def get_session(database_url: str | None = None) -> AsyncGenerator[AsyncSession]:
     """Get async database session using the global manager."""
-    get_db_manager().initialize(database_url or get_config().database_url)
+    get_db_manager().initialize()
     async with get_db_manager().get_session() as session:
         yield session
 
