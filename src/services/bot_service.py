@@ -84,9 +84,7 @@ class BotService:
 
         # Find best rate for highlighting
         valid_rates = {k: v for k, v in rates.items() if v is not None}
-        best_bank = (
-            max(valid_rates, key=lambda k: valid_rates[k]) if valid_rates else None
-        )
+        best_bank = max(valid_rates, key=lambda k: valid_rates[k]) if valid_rates else None
 
         for bank_name, rate in rates.items():
             display_name = self._get_bank_display_name(bank_name)
@@ -111,7 +109,7 @@ class BotService:
         }
         return display_names.get(bank_name, bank_name)
 
-    async def format_daily_notification(self, rates: dict[str, float | None]) -> str:
+    async def format_daily_notification(self, rates: Rates) -> str:
         """Format daily notification message."""
         from datetime import datetime
 

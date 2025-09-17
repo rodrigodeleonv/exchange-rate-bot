@@ -19,9 +19,9 @@ class TelegramBotClient:
 
     def _load_config(self) -> None:
         """Load configuration from environment."""
-        self.bot_token = get_config().telegram.bot_token
+        self.bot_token = get_config().telegram.bot_token.get_secret_value()
         self.webhook_url = get_config().server.webhook_url
-        self.webhook_secret_token = get_config().server.webhook_secret_token
+        self.webhook_secret_token = get_config().server.webhook_secret_token.get_secret_value()
         self.host = get_config().server.host
         self.port = get_config().server.port
 
@@ -29,7 +29,7 @@ class TelegramBotClient:
     def bot(self) -> Bot:
         """Get or create Bot instance."""
         if self._bot is None:
-            self._bot = Bot(token=self.bot_token.get_secret_value())
+            self._bot = Bot(token=self.bot_token)
         return self._bot
 
     async def send_message(self, chat_id: int, text: str) -> None:
@@ -53,7 +53,7 @@ class TelegramBotClient:
 
         await self.bot.set_webhook(
             url=self.webhook_url,
-            secret_token=self.webhook_secret_token.get_secret_value(),
+            secret_token=self.webhook_secret_token,
             drop_pending_updates=True,
         )
         logger.info("✅ Webhook set successfully with secret token")

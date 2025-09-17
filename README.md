@@ -1,4 +1,54 @@
-# exchange-rate-bot
+# 🤖 Exchange Rate Bot
+
+A Telegram bot that provides real-time USD/GTQ exchange rates from multiple Guatemalan banks with webhook support and daily notifications.
+
+## 🚀 Quick Start
+
+### Run the Bot
+```bash
+# Start webhook server (default)
+python main.py
+
+# Send daily rates notification
+python main.py daily
+
+# Show help
+python main.py help
+```
+
+### Available Applications
+- **🌐 Webhook Server**: FastAPI-based real-time bot interactions
+- **📊 Daily Notifier**: Automated daily exchange rate notifications
+- **🚀 Startup Notifier**: Bot startup notifications (legacy)
+
+## 🏗️ Architecture
+
+Clean Architecture with layered design:
+
+```
+├── apps/                    # 📱 Applications Layer (Entry Points)
+├── src/
+│   ├── infrastructure/      # 🔧 Infrastructure (Telegram, HTTP)
+│   ├── handlers/           # 🎯 Presentation (Bot Commands)
+│   ├── services/           # ⚙️ Business Logic
+│   ├── repositories/       # 📦 Data Access
+│   └── database/          # 🗄️ Persistence
+```
+
+## 🤖 Bot Commands
+
+- `/start` - Welcome message
+- `/help` - Show available commands
+- `/ping` - Test bot responsiveness
+- `/rates` - Get current exchange rates
+- `/subscribe` - Subscribe to daily notifications
+- `/unsubscribe` - Unsubscribe from notifications
+
+## 💱 Supported Banks
+
+- **Banguat** (Banco de Guatemala) - Official rates
+- **Banrural** - Commercial rates
+- **Nexa Banco** - Digital banking rates
 
 ## References
 

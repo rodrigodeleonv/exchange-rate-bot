@@ -42,6 +42,7 @@ class TelegramBotWebhook(TelegramBotClient):
         if not self.dp or not self.handlers:
             raise RuntimeError("Components not initialized")
 
+        # TODO: Use decorators ~Replace with aiogram 4.0 handlers~
         self.dp.message(CommandStart())(self.handlers.start_handler)
         self.dp.message(Command("help"))(self.handlers.help_handler)
         self.dp.message(Command("ping"))(self.handlers.ping_handler)
