@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class BanguatClient(ScraperBase):
     """Simple async client for Banco de Guatemala exchange rate API."""
 
-    BASE_URL = get_config().banguat_base_url
+    BASE_URL = get_config().scraper_url.banguat_base_url
 
     def __init__(self, timeout: int = 30) -> None:
         """Initialize the client."""

@@ -26,11 +26,13 @@ class TelegramBot:
 
     def _load_config(self) -> None:
         """Load configuration from environment."""
-        self.bot_token = get_config().telegram_bot_token
-        self.webhook_url = get_config().webhook_url
-        self.webhook_secret_token = get_config().webhook_secret_token
-        self.host = get_config().host
-        self.port = get_config().port
+        self.bot_token = get_config().telegram.bot_token.get_secret_value()
+        self.webhook_url = get_config().server.webhook_url
+        self.webhook_secret_token = (
+            get_config().server.webhook_secret_token.get_secret_value()
+        )
+        self.host = get_config().server.host
+        self.port = get_config().server.port
 
     def setup(self) -> None:
         """Setup bot with dependency injection pattern."""

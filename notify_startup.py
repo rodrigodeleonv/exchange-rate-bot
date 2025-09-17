@@ -9,7 +9,7 @@ from src.infrastructure import TelegramNotification
 from src.repositories import NotificationSubscriptionRepository
 
 # Configure basic logging
-logging.basicConfig(level=get_config().logging_level)
+logging.basicConfig(level=get_config().log.level)
 logger = logging.getLogger(__name__)
 
 

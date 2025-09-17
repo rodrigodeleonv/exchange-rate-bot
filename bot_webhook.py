@@ -61,7 +61,9 @@ class WebhookServer:
 
         # Shutdown
         logger.info("🛑 Shutting down bot...")
-        await self.bot.close(cleanup_webhook=get_config().cleanup_webhook_on_shutdown)
+        await self.bot.close(
+            cleanup_webhook=get_config().telegram.cleanup_webhook_on_shutdown
+        )
         logger.info("👋 Bot stopped")
 
     def _register_routes(self, app: FastAPI) -> None:
@@ -133,7 +135,7 @@ class WebhookServer:
                 self.app if not run_dev else "bot_webhook:create_app",
                 host=self.bot.host,
                 port=self.bot.port,
-                log_level=get_config().logging_level.lower(),
+                log_level=get_config().log.level.lower(),
                 reload=run_dev,
             )
         except KeyboardInterrupt:

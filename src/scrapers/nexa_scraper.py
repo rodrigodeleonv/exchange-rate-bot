@@ -16,19 +16,19 @@ logger = logging.getLogger(__name__)
 class NexaScraper(ScraperBase):
     """Scraper for Nexa Banco exchange rates."""
 
-    BASE_URL = get_config().nexa_base_url
+    BASE_URL = get_config().scraper_url.nexa_base_url
 
     def __init__(self, timeout: int = 30) -> None:
         """Initialize the scraper."""
         self.timeout = aiohttp.ClientTimeout(total=timeout)
         self.headers = {
-            "User-Agent": get_config().scrapper_headers.user_agent,
-            "Accept": get_config().scrapper_headers.accept,
-            "Accept-Language": get_config().scrapper_headers.accept_language,
-            "Accept-Encoding": get_config().scrapper_headers.accept_encoding,
-            "Connection": get_config().scrapper_headers.connection,
+            "User-Agent": get_config().scraper_header.user_agent,
+            "Accept": get_config().scraper_header.accept,
+            "Accept-Language": get_config().scraper_header.accept_language,
+            "Accept-Encoding": get_config().scraper_header.accept_encoding,
+            "Connection": get_config().scraper_header.connection,
             "Upgrade-Insecure-Requests": (
-                get_config().scrapper_headers.upgrade_insec_req
+                get_config().scraper_header.upgrade_insec_req
             ),
         }
 

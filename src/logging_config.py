@@ -26,7 +26,7 @@ def setup_logging(log_dir: str | None = None) -> None:
 
     # Configure root logger
     root_logger = logging.getLogger()
-    root_logger.setLevel(get_config().logging_level.upper())
+    root_logger.setLevel(get_config().log.level.upper())
 
     # Clear existing handlers to avoid duplicates
     root_logger.handlers.clear()
@@ -82,7 +82,7 @@ def setup_logging(log_dir: str | None = None) -> None:
     logger = logging.getLogger(__name__)
     logger.info("Logging configured successfully")
     logger.info(f"Log directory: {log_dir_path.absolute()}")
-    logger.info(f"Log level: {get_config().logging_level}")
+    logger.info(f"Log level: {get_config().log.level}")
     logger.info("Log retention: 30 days")
 
 

@@ -1,15 +1,14 @@
 """Centralized configuration module for environment variables and settings."""
 
-import os
-from dataclasses import dataclass
 from functools import lru_cache
+from typing import ClassVar
 
-from dotenv import load_dotenv
+from pydantic import BaseModel, SecretStr
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-@dataclass(frozen=True)
-class ScrapperHeaders:
-    """User agent class."""
+class ScrapperHeaderSettings(BaseModel):
+    """Scrapper headers class."""
 
     user_agent: str = (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -24,62 +23,68 @@ class ScrapperHeaders:
     upgrade_insec_req: str = "1"
 
 
-@dataclass(frozen=True)
-class Config:
-    """Main configuration class."""
+class ScraperUrlSettings(BaseModel):
+    """Scraper URL settings class."""
 
-    # Telegram
-    telegram_bot_token: str
+    banguat_base_url: str = "https://www.banguat.gob.gt/variables/ws/TipoCambio.asmx"
+    nexa_base_url: str = "https://www.nexabanco.com/"
+    banrural_base_url: str = "https://www.banrural.com.gt/site/personas"
 
-    # Webhook configuration
-    webhook_url: str
-    webhook_secret_token: str
+
+class TelegramSettings(BaseModel):
+    """Telegram configuration class."""
+
+    bot_token: SecretStr
     cleanup_webhook_on_shutdown: bool
+
+
+class ServerSettings(BaseModel):
+    """Server configuration class."""
+
+    webhook_url: str
+    webhook_secret_token: SecretStr
     host: str
     port: int
 
-    # Scrapers
-    banguat_base_url: str
-    nexa_base_url: str
-    banrural_base_url: str
-    scrapper_headers: ScrapperHeaders
 
-    # Database configuration
-    database_url: str
-    database_echo: bool
+class DatabaseSettings(BaseModel):
+    """Database configuration class."""
 
-    # Logging
-    logging_level: str
+    url: str
+    echo: bool
+
+
+class LoggingSettings(BaseModel):
+    """Logging configuration class."""
+
+    level: str
+
+
+class Config(BaseSettings):
+    """Main configuration class."""
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+        env_nested_delimiter="_",
+        env_nested_max_split=1,
+    )
+
+    telegram: TelegramSettings
+    server: ServerSettings
+    database: DatabaseSettings
+    log: LoggingSettings
+
+    scraper_url: ScraperUrlSettings = ScraperUrlSettings()
+    scraper_header: ClassVar[ScrapperHeaderSettings] = ScrapperHeaderSettings()
 
 
 @lru_cache(maxsize=1)
 def get_config() -> Config:
     """Get the global configuration instance."""
-    load_dotenv()
+    return Config()  # pyright: ignore[reportCallIssue]
 
-    # TODO: Add validation for required environment variables
-    # Check if required environment variables are set
-    # if not os.getenv("TELEGRAM_BOT_TOKEN"):
-    #     raise ValueError("TELEGRAM_BOT_TOKEN not found in environment variables")
 
-    return Config(
-        telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN", ""),
-        webhook_url=os.getenv("WEBHOOK_URL", ""),
-        webhook_secret_token=os.getenv("WEBHOOK_SECRET_TOKEN", ""),
-        host=os.getenv("HOST", "0.0.0.0"),
-        port=int(os.getenv("PORT", "8000")),
-        cleanup_webhook_on_shutdown=os.getenv(
-            "CLEANUP_WEBHOOK_ON_SHUTDOWN", "False"
-        ).lower()
-        == "true",
-        banguat_base_url=os.getenv(
-            "BANGUAT_BASE_URL",
-            "https://www.banguat.gob.gt/variables/ws/TipoCambio.asmx",
-        ),
-        nexa_base_url="https://www.nexabanco.com/",
-        banrural_base_url="https://www.banrural.com.gt/site/personas",
-        scrapper_headers=ScrapperHeaders(),
-        logging_level=os.getenv("LOG_LEVEL", "INFO"),
-        database_url=os.getenv("DATABASE_URL", ""),
-        database_echo=os.getenv("DATABASE_ECHO", "False").lower() == "true",
-    )
+if __name__ == "__main__":
+    print(get_config())

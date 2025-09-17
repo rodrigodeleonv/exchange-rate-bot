@@ -24,7 +24,7 @@ if config.config_file_name is not None:
 
 # Set the database URL from our config
 app_config = get_config()
-config.set_main_option("sqlalchemy.url", app_config.database_url)
+config.set_main_option("sqlalchemy.url", app_config.database.url)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
@@ -66,7 +66,7 @@ def do_run_migrations(connection: Connection) -> None:
 async def run_async_migrations() -> None:
     """Run migrations in async mode."""
     configuration = config.get_section(config.config_ini_section, {})
-    configuration["sqlalchemy.url"] = app_config.database_url
+    configuration["sqlalchemy.url"] = app_config.database.url
     connectable = async_engine_from_config(
         configuration,
         prefix="sqlalchemy.",

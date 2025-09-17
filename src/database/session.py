@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 def get_engine(database_url: str | None = None) -> AsyncEngine:
     """Get async database engine."""
     return create_async_engine(
-        database_url or get_config().database_url,
-        echo=get_config().database_echo,
+        database_url or get_config().database.url,
+        echo=get_config().database.echo,
         pool_pre_ping=True,
     )
 
@@ -51,7 +51,7 @@ class DatabaseManager:
             return
 
         # Create async engine and cache it
-        self._engine = get_engine(get_config().database_url)
+        self._engine = get_engine(get_config().database.url)
 
         # Create session maker and cache it
         self._session_maker = get_sessionmaker()
