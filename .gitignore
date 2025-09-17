@@ -1,6 +1,8 @@
 .vscode/**
 .tmp/**
 
+logs/**
+
 # SQLite database
 *.db
 
