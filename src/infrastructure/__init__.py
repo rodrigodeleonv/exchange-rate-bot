@@ -8,6 +8,6 @@ from .telegram_notification import TelegramNotification
 __all__ = [
     "TelegramBot",  # Legacy - for backward compatibility
     "TelegramBotClient",
-    "TelegramBotWebhook", 
+    "TelegramBotWebhook",
     "TelegramNotification",
 ]

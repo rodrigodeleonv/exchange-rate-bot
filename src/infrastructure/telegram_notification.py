@@ -67,6 +67,7 @@ class TelegramNotification(TelegramBotClient):
         )
         return sent_count, error_count
 
+    # TODO: Not used
     async def send_exchange_rate_update(
         self, chat_ids: AsyncIterator[int], rates_message: str
     ) -> tuple[int, int]:
@@ -86,6 +87,7 @@ class TelegramNotification(TelegramBotClient):
         logger.info("💱 Exchange rate update sent to %s subscribers", sent_count)
         return sent_count, error_count
 
+    # TODO: Not used
     async def send_daily_summary(
         self, chat_ids: AsyncIterator[int], summary_message: str
     ) -> tuple[int, int]:
