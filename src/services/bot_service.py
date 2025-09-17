@@ -2,6 +2,8 @@
 
 import logging
 
+from src.database import get_session
+from src.repositories import NotificationSubscriptionRepository
 from src.services.exchange_rate_service import ExchangeRateService, Rates
 
 logger = logging.getLogger(__name__)
@@ -13,7 +15,6 @@ class BotService:
     def __init__(self, exchange_service: ExchangeRateService) -> None:
         """Initialize bot service with dependencies."""
         self.exchange_service = exchange_service
-        self.subscribers: list[int] = []
 
     async def get_start_message(self, user_name: str) -> str:
         """Generate start message for user."""
@@ -59,23 +60,22 @@ class BotService:
 
     async def subscribe_user(self, chat_id: int) -> str:
         """Subscribe user to daily notifications."""
-        if chat_id not in self.subscribers:
-            self.subscribers.append(chat_id)
-            logger.info(f"User {chat_id} subscribed to notifications")
-            return (
-                "✅ ¡Suscrito exitosamente!\n"
-                "Recibirás notificaciones diarias con las tasas de cambio."
-            )
-        else:
-            return "ℹ️ Ya estás suscrito a las notificaciones diarias."
+        async with get_session() as session:
+            repo = NotificationSubscriptionRepository(session)
+            await repo.create_subscription(chat_id=chat_id)
+        logger.info(f"User {chat_id} subscribed to notifications")
+        return "✅ ¡Suscrito exitosamente!\n"
 
     async def unsubscribe_user(self, chat_id: int) -> str:
         """Unsubscribe user from daily notifications."""
-        if chat_id in self.subscribers:
-            self.subscribers.remove(chat_id)
+        async with get_session() as session:
+            repo = NotificationSubscriptionRepository(session)
+            success = await repo.delete_subscription(chat_id=chat_id)
+        if success:
             logger.info(f"User {chat_id} unsubscribed from notifications")
             return "❌ Te has desuscrito de las notificaciones diarias."
         else:
+            logger.info(f"User {chat_id} was not subscribed to notifications")
             return "ℹ️ No estás suscrito a notificaciones."
 
     def _format_rates_message(self, rates: Rates) -> str:
@@ -110,10 +110,6 @@ class BotService:
             "nexa": "🏪 Nexa Banco (Compra)",
         }
         return display_names.get(bank_name, bank_name)
-
-    def get_subscribers(self) -> list[int]:
-        """Get list of subscribed chat IDs."""
-        return self.subscribers.copy()
 
     async def format_daily_notification(self, rates: dict[str, float | None]) -> str:
         """Format daily notification message."""

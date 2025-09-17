@@ -3,10 +3,9 @@
 import asyncio
 import logging
 
-from aiogram import Bot
-
 from src.config import get_config
 from src.database import get_session
+from src.infrastructure import TelegramNotification
 from src.repositories import NotificationSubscriptionRepository
 
 # Configure basic logging
@@ -17,12 +16,7 @@ logger = logging.getLogger(__name__)
 async def send_startup_notification():
     """Send message to your Telegram chat."""
     try:
-        bot_token = get_config().telegram_bot_token
-        if not bot_token:
-            logger.error("TELEGRAM_BOT_TOKEN not found in environment")
-            return
-
-        bot = Bot(token=bot_token)
+        notification_bot = TelegramNotification()
 
         sent_count = 0
 
@@ -32,7 +26,9 @@ async def send_startup_notification():
             async for chat_id in repo.get_all_chat_ids():
                 try:
                     # Send startup message
-                    await bot.send_message(chat_id=chat_id, text="🚀 Hola async!")
+                    await notification_bot.send_message(
+                        chat_id=chat_id, text="🚀 Hola async!"
+                    )
                     sent_count += 1
                     logger.info("✅ Startup message sent to chat_id: %s", chat_id)
                 except Exception as e:
@@ -50,7 +46,7 @@ async def send_startup_notification():
             logger.info("📊 Startup notifications sent to %s subscribers", sent_count)
 
         # Close bot session
-        await bot.session.close()
+        await notification_bot.close()
 
     except Exception as e:
         logger.error("❌ Failed to send startup message: %s", e)
