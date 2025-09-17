@@ -9,8 +9,8 @@ from aiogram.types import Update
 from fastapi import FastAPI, Request, Response
 
 from src.config import get_config
+from src.infrastructure.telegram_bot import TelegramBot
 from src.logging_config import setup_logging
-from src.services.telegram_bot import TelegramBot
 
 setup_logging()
 
