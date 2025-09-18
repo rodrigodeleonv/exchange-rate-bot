@@ -61,6 +61,6 @@ class TelegramBotWebhook(TelegramBotClient):
             try:
                 await self.delete_webhook()
             except Exception as e:
-                logger.warning(f"Failed to cleanup webhook: {e}")
+                logger.warning("Failed to cleanup webhook: %s", e)
 
         await super().close()

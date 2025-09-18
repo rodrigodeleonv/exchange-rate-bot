@@ -70,7 +70,7 @@ class WebhookApp:
             await self.bot_webhook.set_webhook()
             logger.info("✅ Webhook configured successfully")
         except Exception as webhook_error:
-            logger.warning(f"⚠️ Failed to set webhook: {webhook_error}")
+            logger.warning("⚠️ Failed to set webhook: %s", webhook_error)
             logger.warning(
                 "⚠️ Server will continue running - webhook endpoints available for manual setup"
             )
@@ -84,7 +84,7 @@ class WebhookApp:
             )
             logger.info("✅ Bot shutdown completed successfully")
         except Exception as shutdown_error:
-            logger.warning(f"⚠️ Error during bot shutdown: {shutdown_error}")
+            logger.warning("⚠️ Error during bot shutdown: %s", shutdown_error)
         logger.info("👋 Server stopped")
 
     def _register_routes(self, app: FastAPI) -> None:
@@ -109,7 +109,7 @@ class WebhookApp:
                 await self.bot_webhook.process_update(update)
                 return Response(status_code=200)
             except Exception as e:
-                logger.error(f"❌ Error processing webhook: {e}")
+                logger.error("❌ Error processing webhook: %s", e)
                 return Response(status_code=500)
 
         @app.post("/set-webhook")
@@ -119,7 +119,7 @@ class WebhookApp:
                 await self.bot_webhook.set_webhook()
                 return {"message": "Webhook set successfully"}
             except Exception as e:
-                logger.error(f"Error setting webhook: {e}")
+                logger.error("Error setting webhook: %s", e)
                 return {"error": str(e)}
 
         @app.delete("/delete-webhook")
@@ -129,7 +129,7 @@ class WebhookApp:
                 await self.bot_webhook.delete_webhook()
                 return {"message": "Webhook deleted successfully"}
             except Exception as e:
-                logger.error(f"Error deleting webhook: {e}")
+                logger.error("Error deleting webhook: %s", e)
                 return {"error": str(e)}
 
         @app.get("/health")

@@ -63,7 +63,7 @@ class BotService:
         async with get_session() as session:
             repo = NotificationSubscriptionRepository(session)
             await repo.create_subscription(chat_id=chat_id)
-        logger.info(f"User {chat_id} subscribed to notifications")
+        logger.info("User %s subscribed to notifications", chat_id)
         return "✅ ¡Suscrito exitosamente!\n"
 
     async def unsubscribe_user(self, chat_id: int) -> str:
@@ -72,10 +72,10 @@ class BotService:
             repo = NotificationSubscriptionRepository(session)
             success = await repo.delete_subscription(chat_id=chat_id)
         if success:
-            logger.info(f"User {chat_id} unsubscribed from notifications")
+            logger.info("User %s unsubscribed from notifications", chat_id)
             return "❌ Te has desuscrito de las notificaciones diarias."
         else:
-            logger.info(f"User {chat_id} was not subscribed to notifications")
+            logger.info("User %s was not subscribed to notifications", chat_id)
             return "ℹ️ No estás suscrito a notificaciones."
 
     def _format_rates_message(self, rates: Rates) -> str:

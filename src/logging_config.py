@@ -81,8 +81,8 @@ def setup_logging(log_dir: str | None = None) -> None:
     # Log the configuration
     logger = logging.getLogger(__name__)
     logger.info("Logging configured successfully")
-    logger.info(f"Log directory: {log_dir_path.absolute()}")
-    logger.info(f"Log level: {get_config().log.level}")
+    logger.info("Log directory: %s", log_dir_path.absolute())
+    logger.info("Log level: %s", get_config().log.level)
     logger.info("Log retention: 30 days")
 
 
