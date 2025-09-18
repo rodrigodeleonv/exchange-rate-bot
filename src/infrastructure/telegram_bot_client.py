@@ -5,6 +5,7 @@ import logging
 from aiogram import Bot
 
 from src.config import get_config
+from src.utils import build_url
 
 logger = logging.getLogger(__name__)
 
@@ -20,10 +21,14 @@ class TelegramBotClient:
     def _load_config(self) -> None:
         """Load configuration from environment."""
         self.bot_token = get_config().telegram.bot_token.get_secret_value()
-        self.webhook_url = get_config().server.webhook_url
+        self.webhook_url = self.build_webhook_url()
         self.webhook_secret_token = get_config().server.webhook_secret_token.get_secret_value()
         self.host = get_config().server.host
         self.port = get_config().server.port
+
+    def build_webhook_url(self) -> str:
+        """Build webhook URL."""
+        return build_url(get_config().server.webhook_base_url, get_config().server.webhook_endpoint)
 
     @property
     def bot(self) -> Bot:

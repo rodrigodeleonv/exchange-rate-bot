@@ -14,9 +14,7 @@ class ScrapperHeaderSettings(BaseModel):
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
         "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     )
-    accept: str = (
-        "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
-    )
+    accept: str = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
     accept_language: str = "es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3"
     accept_encoding: str = "gzip, deflate, br"
     connection: str = "keep-alive"
@@ -41,7 +39,8 @@ class TelegramSettings(BaseModel):
 class ServerSettings(BaseModel):
     """Server configuration class."""
 
-    webhook_url: str
+    webhook_base_url: str
+    webhook_endpoint: str = "/webhook"
     webhook_secret_token: SecretStr
     host: str
     port: int
