@@ -42,35 +42,41 @@ class WebhookApp:
         # Startup
         logger.info("🚀 Starting Exchange Rate Bot webhook...")
 
+        # Setup bot client (critical - must succeed)
         try:
-            # Always setup the bot first
             self.bot_webhook.setup()
             logger.info("✅ Bot client initialized successfully")
-
-            # Try to configure webhook, but don't fail if it doesn't work
-            if self.bot_webhook.webhook_url:
-                try:
-                    await self.bot_webhook.set_webhook()
-                    logger.info("✅ Webhook configured successfully")
-                except Exception as webhook_error:
-                    logger.warning(f"⚠️ Failed to set webhook: {webhook_error}")
-                    logger.warning("⚠️ Server will continue running")
-            else:
-                logger.warning(
-                    "⚠️ WEBHOOK_URL not configured. Server running without automatic webhook setup"
-                )
-
-            logger.info("🚀 FastAPI server ready to accept requests")
-
         except Exception as e:
-            # Only fail if we can't setup the basic bot client
-            logger.error(f"❌ Critical error during bot setup: {e}")
-            logger.error("❌ Cannot continue without bot client")
+            logger.error("❌ Critical error during bot setup: %s", e)
             raise
+
+        # Setup webhook (optional - can fail gracefully)
+        await self._setup_webhook()
+
+        logger.info("🚀 FastAPI server ready to accept requests")
 
         yield
 
         # Shutdown
+        await self._shutdown_bot()
+
+    async def _setup_webhook(self) -> None:
+        """Setup webhook with proper error handling."""
+        if not self.bot_webhook.webhook_url:
+            logger.warning("⚠️ WEBHOOK_URL not configured. Server running without webhook setup")
+            return
+
+        try:
+            await self.bot_webhook.set_webhook()
+            logger.info("✅ Webhook configured successfully")
+        except Exception as webhook_error:
+            logger.warning(f"⚠️ Failed to set webhook: {webhook_error}")
+            logger.warning(
+                "⚠️ Server will continue running - webhook endpoints available for manual setup"
+            )
+
+    async def _shutdown_bot(self) -> None:
+        """Shutdown bot with proper error handling."""
         logger.info("🛑 Shutting down bot...")
         try:
             await self.bot_webhook.close(
