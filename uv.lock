@@ -239,6 +239,7 @@ dependencies = [
     { name = "brotli" },
     { name = "fastapi", extra = ["standard"] },
     { name = "lxml" },
+    { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "sqlalchemy" },
 ]
@@ -254,14 +255,15 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiofiles", specifier = ">=24.1.0" },
-    { name = "aiogram", specifier = ">=3.22.0" },
-    { name = "aiohttp", specifier = ">=3.9.0" },
+    { name = "aiogram", specifier = ">=3.15.0" },
+    { name = "aiohttp", specifier = ">=3.10.0" },
     { name = "aiosqlite", specifier = ">=0.20.0" },
     { name = "alembic", specifier = ">=1.16.5" },
     { name = "beautifulsoup4", specifier = ">=4.13.5" },
     { name = "brotli", specifier = ">=1.1.0" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.116.1" },
     { name = "lxml", specifier = ">=5.0.0" },
+    { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pydantic-settings", specifier = ">=2.10.1" },
     { name = "sqlalchemy", specifier = ">=2.0.43" },
 ]

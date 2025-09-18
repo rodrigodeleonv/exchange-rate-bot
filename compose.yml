@@ -1,0 +1,130 @@
+
+services:
+  # Main application service
+  exchange-rate-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: exchange-rate-bot
+    restart: unless-stopped
+
+    command: ["python", "main.py", "webhook"]
+
+    # Environment configuration
+    environment:
+      - LOG_LEVEL=INFO
+      - DATABASE_URL=sqlite+aiosqlite:///./data/exchange_bot.db
+      - DATABASE_ECHO=false
+
+    # Environment file for secrets
+    env_file:
+      - .env
+
+    # Port mapping
+    ports:
+      - "8000:8000"
+
+    # Volume mounts
+    volumes:
+      - ./data:/app/data:rw          # Database persistence
+      - ./logs:/app/logs:rw          # Log persistence
+      - /etc/localtime:/etc/localtime:ro  # Timezone sync
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Network
+    networks:
+      - exchange-rate-network
+
+  # Daily notifier service (cron-like)
+  daily-notifier:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: exchange-rate-daily-notifier
+    restart: unless-stopped
+
+    # Override command for daily notifications
+    command: ["python", "main.py", "daily"]
+
+    # Environment configuration
+    environment:
+      - LOG_LEVEL=INFO
+      - DATABASE_URL=sqlite+aiosqlite:///./data/exchange_bot.db
+
+    env_file:
+      - .env
+
+    # Share database with main service
+    volumes:
+      - ./data:/app/data:rw
+      - ./logs:/app/logs:rw
+      - /etc/localtime:/etc/localtime:ro
+
+    # Resource limits (lighter for notifier)
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+    # Network
+    networks:
+      - exchange-rate-network
+
+    # Depends on main service
+    depends_on:
+      exchange-rate-bot:
+        condition: service_healthy
+
+    # Profile for optional service
+    profiles:
+      - daily-notifications
+
+# Networks
+networks:
+  exchange-rate-network:
+    driver: bridge
+    name: exchange-rate-network
+
+# Volumes (optional - using bind mounts instead)
+volumes:
+  exchange-rate-data:
+    driver: local
+  exchange-rate-logs:
+    driver: local
