@@ -34,10 +34,10 @@ services:
     # Health check
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
+      interval: 300s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 90s
 
     # Resource limits
     deploy:
@@ -96,14 +96,12 @@ services:
           memory: 128M
           cpus: '0.1'
 
-    # Logging
     logging:
       driver: "json-file"
       options:
         max-size: "5m"
         max-file: "2"
 
-    # Network
     networks:
       - exchange-rate-network
 
@@ -116,13 +114,11 @@ services:
     profiles:
       - daily-notifications
 
-# Networks
 networks:
   exchange-rate-network:
     driver: bridge
     name: exchange-rate-network
 
-# Volumes (optional - using bind mounts instead)
 volumes:
   exchange-rate-data:
     driver: local

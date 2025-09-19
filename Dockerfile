@@ -23,8 +23,12 @@ RUN pip install uv
 # Set work directory
 WORKDIR /app
 
-# Copy project files
-COPY . .
+COPY pyproject.toml uv.lock ./
+COPY src/ src/
+COPY apps/ apps/
+COPY main.py ./
+COPY alembic/ alembic/
+COPY alembic.ini ./
 
 # Install dependencies to a virtual environment
 RUN uv venv /opt/venv
@@ -56,7 +60,7 @@ COPY --from=builder /opt/venv /opt/venv
 
 # Set work directory and copy application code
 WORKDIR /app
-COPY --chown=appuser:appuser . .
+COPY --chown=appuser:appuser --from=builder /app ./
 
 # Create logs directory with proper permissions
 RUN mkdir -p logs && chown -R appuser:appuser logs

@@ -57,6 +57,13 @@ data/
 *.db
 *.sqlite
 
+# Development files
+.ruff_cache/
+.windsurf/
+scripts/
+tests/
+example.env
+
 # Docker
 Dockerfile*
 docker-compose*.yml
