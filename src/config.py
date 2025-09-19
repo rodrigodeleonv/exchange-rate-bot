@@ -44,6 +44,7 @@ class ServerSettings(BaseModel):
     webhook_secret_token: SecretStr
     host: str
     port: int
+    timezone: str
 
 
 class DatabaseSettings(BaseModel):

@@ -12,6 +12,12 @@ python main.py
 # Send daily rates notification
 python main.py daily
 
+# Start scheduler
+python -m apps.scheduler_app
+
+# Test scheduler (run once)
+python -m apps.scheduler_app --run-once
+
 # Show help
 python main.py help
 ```
@@ -19,6 +25,7 @@ python main.py help
 ### Available Applications
 - **🌐 Webhook Server**: FastAPI-based real-time bot interactions
 - **📊 Daily Notifier**: Automated daily exchange rate notifications
+- **⏰ Scheduler**: Automated daily notifications at 8:00 AM Guatemala time
 - **🚀 Startup Notifier**: Bot startup notifications (legacy)
 
 ## 🏗️ Architecture

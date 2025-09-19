@@ -1,5 +1,7 @@
 """Daily rates notifier application."""
 
+# TODO: Remove this module
+
 import asyncio
 import logging
 
