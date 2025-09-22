@@ -112,25 +112,29 @@ class WebhookApp:
                 logger.error("❌ Error processing webhook: %s", e)
                 return Response(status_code=500)
 
-        @app.post("/set-webhook")
-        async def set_webhook_endpoint() -> dict[str, str]:
-            """Manually set webhook (for testing/management)."""
-            try:
-                await self.bot_webhook.set_webhook()
-                return {"message": "Webhook set successfully"}
-            except Exception as e:
-                logger.error("Error setting webhook: %s", e)
-                return {"error": str(e)}
+        # TODO: Implement secuirity in these endpoints.
+        # Join /set-webhook and /delete-webhook in one endpoint name.
+        # ---
+        # @app.post("/set-webhook")
+        # async def set_webhook_endpoint() -> dict[str, str]:
+        #     """Manually set webhook (for testing/management)."""
+        #     try:
+        #         await self.bot_webhook.set_webhook()
+        #         return {"message": "Webhook set successfully"}
+        #     except Exception as e:
+        #         logger.error("Error setting webhook: %s", e)
+        #         return {"error": str(e)}
 
-        @app.delete("/delete-webhook")
-        async def delete_webhook_endpoint() -> dict[str, str]:
-            """Manually delete webhook."""
-            try:
-                await self.bot_webhook.delete_webhook()
-                return {"message": "Webhook deleted successfully"}
-            except Exception as e:
-                logger.error("Error deleting webhook: %s", e)
-                return {"error": str(e)}
+        # @app.delete("/delete-webhook")
+        # async def delete_webhook_endpoint() -> dict[str, str]:
+        #     """Manually delete webhook."""
+        #     try:
+        #         await self.bot_webhook.delete_webhook()
+        #         return {"message": "Webhook deleted successfully"}
+        #     except Exception as e:
+        #         logger.error("Error deleting webhook: %s", e)
+        #         return {"error": str(e)}
+        # ---
 
         @app.get("/health")
         async def health_check() -> dict[str, Any]:
