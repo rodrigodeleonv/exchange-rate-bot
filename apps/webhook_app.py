@@ -112,7 +112,7 @@ class WebhookApp:
                 logger.error("❌ Error processing webhook: %s", e)
                 return Response(status_code=500)
 
-        # TODO: Implement secuirity in these endpoints.
+        # TODO: Implement security in these endpoints.
         # Join /set-webhook and /delete-webhook in one endpoint name.
         # ---
         # @app.post("/set-webhook")
