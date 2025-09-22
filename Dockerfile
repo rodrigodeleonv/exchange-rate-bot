@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1
-
 # =============================================================================
 # Build stage - Install dependencies and build the application
 # =============================================================================
@@ -45,9 +43,13 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PATH="/opt/venv/bin:$PATH"
 
-# Create non-root user for security
-RUN groupadd --gid 1000 appuser && \
-    useradd --uid 1000 --gid appuser --shell /bin/bash --create-home appuser
+# Allow configurable UID/GID for cross-platform compatibility
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+
+# Create non-root user for security with configurable UID/GID
+RUN groupadd --gid $GROUP_ID appuser && \
+    useradd --uid $USER_ID --gid appuser --shell /bin/bash --create-home appuser
 
 # Install only runtime dependencies
 RUN apt-get update && apt-get install -y \
@@ -61,9 +63,6 @@ COPY --from=builder /opt/venv /opt/venv
 # Set work directory and copy application code
 WORKDIR /app
 COPY --chown=appuser:appuser --from=builder /app ./
-
-# Create logs directory with proper permissions
-RUN mkdir -p logs && chown -R appuser:appuser logs
 
 # Switch to non-root user
 USER appuser
