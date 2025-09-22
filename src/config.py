@@ -79,6 +79,8 @@ class Config(BaseSettings):
     scraper_url: ScraperUrlSettings = ScraperUrlSettings()
     scraper_header: ClassVar[ScrapperHeaderSettings] = ScrapperHeaderSettings()
 
+    production: bool
+
 
 @lru_cache(maxsize=1)
 def get_config() -> Config:

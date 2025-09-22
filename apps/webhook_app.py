@@ -63,14 +63,14 @@ class WebhookApp:
     async def _setup_webhook(self) -> None:
         """Setup webhook with proper error handling."""
         if not self.bot_webhook.webhook_url:
-            logger.warning("⚠️ WEBHOOK_URL not configured. Server running without webhook setup")
+            logger.error("⚠️ WEBHOOK_URL not configured. Server running without webhook setup")
             return
 
         try:
             await self.bot_webhook.set_webhook()
             logger.info("✅ Webhook configured successfully")
         except Exception as webhook_error:
-            logger.warning("⚠️ Failed to set webhook: %s", webhook_error)
+            logger.error("⚠️ Failed to set webhook: %s", webhook_error)
             logger.warning(
                 "⚠️ Server will continue running - webhook endpoints available for manual setup"
             )
@@ -165,8 +165,7 @@ def main() -> None:
     bot_instance = TelegramBotWebhook()
     app = WebhookApp(bot_instance)
 
-    # Run server in development mode
-    app.run(run_dev=True)
+    app.run(run_dev=not get_config().production)
 
 
 if __name__ == "__main__":
