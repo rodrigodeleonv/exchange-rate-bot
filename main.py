@@ -2,7 +2,6 @@
 
 import sys
 
-from apps.daily_notifier_app import main_daily, main_startup
 from apps.webhook_app import main as webhook_main
 
 
@@ -14,14 +13,14 @@ def print_help():
     print("")
     print("Commands:")
     print("  webhook  🌐 Start FastAPI webhook server (default)")
-    print("  daily    📊 Send daily exchange rates notification")
-    print("  startup  🚀 Send startup notification (legacy)")
     print("  help     ❓ Show this help message")
     print("")
     print("Examples:")
     print("  python main.py           # Start webhook server")
     print("  python main.py webhook   # Start webhook server")
-    print("  python main.py daily     # Send daily notification")
+    print("")
+    print("For scheduling daily notifications, use:")
+    print("  python -m apps.scheduler_app")
     print("")
 
 
@@ -33,12 +32,6 @@ def main():
         if command == "webhook":
             print("🌐 Starting webhook server...")
             webhook_main()
-        elif command == "daily":
-            print("📊 Sending daily rates notification...")
-            main_daily()
-        elif command == "startup":
-            print("🚀 Sending startup notification...")
-            main_startup()
         elif command in ["help", "-h", "--help"]:
             print_help()
         else:
