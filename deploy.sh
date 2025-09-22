@@ -81,7 +81,7 @@ log_info "Docker will build container with UID=$USER_ID, GID=$GROUP_ID"
 
 # 5. Stop existing containers if running
 log_info "Stopping existing containers..."
-if docker compose ps -q | grep -q .; then
+if test -n "$(docker compose ps -q)"; then
     docker compose down
     log_success "Existing containers stopped"
 else
@@ -90,7 +90,9 @@ fi
 
 # 6. Clean orphaned Docker images (optional)
 log_info "Cleaning orphaned Docker images..."
-docker image prune -f > /dev/null 2>&1 || true
+if ! docker image prune -f > /dev/null 2>&1; then
+    log_warning "Failed to clean orphaned Docker images (docker image prune failed)"
+fi
 log_success "Cleanup completed"
 
 # 7. Build and deploy
