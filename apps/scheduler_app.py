@@ -15,17 +15,10 @@ from apscheduler.triggers.cron import CronTrigger
 
 from src.config import get_config
 from src.infrastructure.telegram_notification import TelegramNotification
+from src.logging_config import setup_logging
 from src.services import BotService, DailyNotificationService, ExchangeRateService
 
-# TODO: centralize logging configuration
-logging.basicConfig(
-    level=get_config().log.level,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler("scheduler.log"),
-    ],
-)
+setup_logging()
 logger = logging.getLogger(__name__)
 
 
