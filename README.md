@@ -2,6 +2,102 @@
 
 A Telegram bot that provides real-time USD/GTQ exchange rates from multiple Guatemalan banks with webhook support and scheduled notifications.
 
+## 🚀 Deployment
+
+### Prerequisites
+
+- Docker & Docker Compose
+- Telegram Bot Token (from [@BotFather](https://t.me/botfather))
+- Domain with SSL certificate (for webhook mode)
+
+### Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd exchange-rate-bot
+   ```
+
+2. **Configure environment variables:**
+   ```bash
+   cp example.env .env
+   ```
+
+   Edit `.env` with your configuration:
+   ```env
+   # Telegram Bot Configuration
+   TELEGRAM_BOT_TOKEN=your_bot_token_here
+
+   # Database Configuration
+   DATABASE_URL=sqlite+aiosqlite:///./data/exchange_rate_bot.db
+
+   # Webhook Configuration
+   WEBHOOK_URL=https://yourdomain.com
+   WEBHOOK_HOST=0.0.0.0
+   WEBHOOK_PORT=8000
+
+   # Logging
+   LOG_LEVEL=INFO
+   ```
+
+3. **Deploy with Docker Compose:**
+   ```bash
+   docker-compose up -d
+   ```
+
+### Manual Docker Commands
+
+If you prefer manual Docker commands:
+
+```bash
+# Build the image
+docker build -t exchange-rate-bot .
+
+# Run the container
+docker run -d \
+  --name exchange-rate-bot \
+  -p 8000:8000 \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/.env:/app/.env \
+  exchange-rate-bot
+```
+
+
+#### Common Issues
+
+1. **Bot not responding:**
+   ```bash
+   # Check if webhook is set correctly
+   curl "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getWebhookInfo"
+
+   # Delete webhook if needed
+   curl -X POST "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/deleteWebhook"
+   ```
+
+2. **Database connection errors:**
+   ```bash
+   # Check database status
+   uv run alembic current
+
+   # Apply pending migrations
+   uv run alembic upgrade head
+   ```
+
+3. **Port conflicts:**
+   ```bash
+   # Kill existing processes
+   pkill -f "python main.py"
+
+   # Check port usage
+   lsof -i :8000
+   ```
+
+#### Health Checks
+
+- **Bot health:** `curl https://yourdomain.com/health`
+- **Webhook status:** `curl https://yourdomain.com/webhook` (should return 405)
+- **Database:** `uv run alembic current`
+
 ## 🚀 Quick Start
 
 ### Run the Bot
