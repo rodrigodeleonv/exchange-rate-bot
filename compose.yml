@@ -1,6 +1,6 @@
 
 services:
-  # Main application service
+
   exchange-rate-bot:
     build:
       context: .
@@ -64,14 +64,13 @@ services:
     networks:
       - exchange-rate-network
 
-  # Daily notifier service (cron-like)
-  daily-notifier:
+  daily-scheduler:
     image: exchange-rate-bot:latest
-    container_name: exchange-rate-daily-notifier
+    container_name: exchange-rate-daily-scheduler
     restart: unless-stopped
 
-    # Override command for daily notifications
-    command: ["python", "main.py", "daily"]
+    # Override command for scheduled notifications
+    command: ["python", "-m", "apps.scheduler_app"]
 
     # Environment configuration
     environment:
