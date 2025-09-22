@@ -6,7 +6,8 @@ from typing import Any
 
 import uvicorn
 from aiogram.types import Update
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, HTTPException, Request, Response, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from src.config import get_config
 from src.infrastructure.telegram_bot_webhook import TelegramBotWebhook
@@ -22,7 +23,30 @@ class WebhookApp:
     def __init__(self, bot_webhook: TelegramBotWebhook):
         """Initialize webhook app with bot instance."""
         self.bot_webhook = bot_webhook
+        self.security = HTTPBearer()
         self.app = self._create_app()
+
+    def _verify_admin_token(self, credentials: HTTPAuthorizationCredentials) -> bool:
+        """Verify admin API key."""
+        config = get_config()
+        expected_token = config.server.admin_api_key.get_secret_value()
+        return credentials.credentials == expected_token
+
+    async def _get_admin_auth(self, credentials: HTTPAuthorizationCredentials = None) -> None:
+        """Dependency to verify admin authentication."""
+        if not credentials:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Missing authentication token",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        if not self._verify_admin_token(credentials):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication token",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
 
     def _create_app(self) -> FastAPI:
         """Create and configure FastAPI application."""
@@ -113,8 +137,11 @@ class WebhookApp:
                 return Response(status_code=500)
 
         @app.post("/set-webhook")
-        async def set_webhook_endpoint() -> dict[str, str]:
-            """Manually set webhook (for testing/management)."""
+        async def set_webhook_endpoint(
+            credentials: HTTPAuthorizationCredentials = self.security
+        ) -> dict[str, str]:
+            """Manually set webhook (for testing/management). Requires admin authentication."""
+            await self._get_admin_auth(credentials)
             try:
                 await self.bot_webhook.set_webhook()
                 return {"message": "Webhook set successfully"}
@@ -123,8 +150,11 @@ class WebhookApp:
                 return {"error": str(e)}
 
         @app.delete("/delete-webhook")
-        async def delete_webhook_endpoint() -> dict[str, str]:
-            """Manually delete webhook."""
+        async def delete_webhook_endpoint(
+            credentials: HTTPAuthorizationCredentials = self.security
+        ) -> dict[str, str]:
+            """Manually delete webhook. Requires admin authentication."""
+            await self._get_admin_auth(credentials)
             try:
                 await self.bot_webhook.delete_webhook()
                 return {"message": "Webhook deleted successfully"}

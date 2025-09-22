@@ -42,6 +42,7 @@ class ServerSettings(BaseModel):
     webhook_base_url: str
     webhook_endpoint: str = "/webhook"
     webhook_secret_token: SecretStr
+    admin_api_key: SecretStr
     host: str
     port: int
     timezone: str

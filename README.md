@@ -89,8 +89,14 @@ docker compose logs -f
 
 - **Bot health:** `curl http://localhost:23456/health`
 - **Webhook status:** `curl http://localhost:23456/webhook` (should return 405)
-- **Set webhook:** `curl http://localhost:23456/set-webhook`
 - **Database:** `uv run alembic current`
+
+#### 🔒 Administrative Endpoints (Require Authentication)
+
+- **Set webhook:** `curl -H "Authorization: Bearer YOUR_ADMIN_API_KEY" -X POST http://localhost:23456/set-webhook`
+- **Delete webhook:** `curl -H "Authorization: Bearer YOUR_ADMIN_API_KEY" -X DELETE http://localhost:23456/delete-webhook`
+
+> ⚠️ **Security Note**: Administrative endpoints require authentication. See [SECURITY.md](SECURITY.md) for complete security configuration.
 
 ## 🚀 Quick Start
 
