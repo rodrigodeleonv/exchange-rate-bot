@@ -10,7 +10,7 @@ A Telegram bot that provides real-time USD/GTQ exchange rates from multiple bank
 - Telegram Bot Token (from [@BotFather](https://t.me/botfather))
 - Domain with SSL certificate (for webhook mode)
 
-### Setup
+### Automated Deployment
 
 1. **Clone the repository:**
    ```bash
@@ -21,13 +21,23 @@ A Telegram bot that provides real-time USD/GTQ exchange rates from multiple bank
 2. **Configure environment variables:**
    ```bash
    cp example.env .env
+   # Edit .env with your configuration
    ```
 
-   Edit `.env` with your configuration.
-
-3. **Deploy with Docker Compose:**
+3. **Deploy with automated script:**
    ```bash
-   docker-compose up -d
+   ./deploy.sh
+   ```
+
+   The deploy script automatically:
+   - ✅ Creates volume structure (`.volumes/`)
+   - ✅ Configures correct permissions
+   - ✅ Detects current user UID/GID for cross-platform compatibility
+   - ✅ Shows deployment status and logs
+
+4. Always clean build when deploying. Use:
+   ```bash
+   docker system prune -f
    ```
 
 ### Manual Docker Commands
@@ -35,16 +45,14 @@ A Telegram bot that provides real-time USD/GTQ exchange rates from multiple bank
 If you prefer manual Docker commands:
 
 ```bash
-# Build the image
-docker build -t exchange-rate-bot .
+# Build with current user UID/GID
+docker compose build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g)
 
-# Run the container
-docker run -d \
-  --name exchange-rate-bot \
-  -p 8000:8000 \
-  -v $(pwd)/data:/app/data \
-  -v $(pwd)/.env:/app/.env \
-  exchange-rate-bot
+# Deploy services
+docker compose up -d
+
+# View logs
+docker compose logs -f
 ```
 
 
@@ -74,13 +82,14 @@ docker run -d \
    pkill -f "python main.py"
 
    # Check port usage
-   lsof -i :8000
+   lsof -i :23456
    ```
 
 #### Health Checks
 
-- **Bot health:** `curl https://yourdomain.com/health`
-- **Webhook status:** `curl https://yourdomain.com/webhook` (should return 405)
+- **Bot health:** `curl http://localhost:23456/health`
+- **Webhook status:** `curl http://localhost:23456/webhook` (should return 405)
+- **Set webhook:** `curl http://localhost:23456/set-webhook`
 - **Database:** `uv run alembic current`
 
 ## 🚀 Quick Start
@@ -118,6 +127,25 @@ Clean Architecture with layered design:
 │   └── database/          # 🗄️ Persistence
 ```
 
+### Volume Structure
+
+The deployment creates a centralized volume structure:
+
+```
+.volumes/
+├── logs/                    # Application logs
+│   ├── app.log             # General application logs
+│   └── errors.log          # Error-specific logs
+└── data/                    # Persistent data
+    └── exchange_bot.db     # SQLite database
+```
+
+**Benefits:**
+- ✅ Centralized data management
+- ✅ Easy backup and restore
+- ✅ Cross-platform permission handling
+- ✅ Development and production consistency
+
 ## 🤖 Bot Commands
 
 - `/start` - Welcome message
@@ -140,7 +168,7 @@ Clean Architecture with layered design:
 - [Pinggy](https://pinggy.io/)
 
 ```bash
-ssh -p 443 -R0:127.0.0.1:8000 qr@free.pinggy.io
+ssh -p 443 -R0:127.0.0.1:23456 qr@free.pinggy.io
 ```
 
 ## Database Management
