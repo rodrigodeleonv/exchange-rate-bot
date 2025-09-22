@@ -89,7 +89,7 @@ docker compose logs -f
 
 - **Bot health:** `curl http://localhost:23456/health`
 - **Webhook status:** `curl http://localhost:23456/webhook` (should return 405)
-- **Set webhook:** `curl http://localhost:23456/set-webhook`
+- **Set webhook:** `curl -X POST "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook" -d "url=https://<YOUR_DOMAIN>/webhook"`
 - **Database:** `uv run alembic current`
 
 ## 🚀 Quick Start
