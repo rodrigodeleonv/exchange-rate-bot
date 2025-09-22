@@ -1,6 +1,6 @@
 # 🤖 Exchange Rate Bot
 
-A Telegram bot that provides real-time USD/GTQ exchange rates from multiple Guatemalan banks with webhook support and scheduled notifications.
+A Telegram bot that provides real-time USD/GTQ exchange rates from multiple banks with webhook support and scheduled notifications.
 
 ## 🚀 Deployment
 
@@ -23,22 +23,7 @@ A Telegram bot that provides real-time USD/GTQ exchange rates from multiple Guat
    cp example.env .env
    ```
 
-   Edit `.env` with your configuration:
-   ```env
-   # Telegram Bot Configuration
-   TELEGRAM_BOT_TOKEN=your_bot_token_here
-
-   # Database Configuration
-   DATABASE_URL=sqlite+aiosqlite:///./data/exchange_rate_bot.db
-
-   # Webhook Configuration
-   WEBHOOK_URL=https://yourdomain.com
-   WEBHOOK_HOST=0.0.0.0
-   WEBHOOK_PORT=8000
-
-   # Logging
-   LOG_LEVEL=INFO
-   ```
+   Edit `.env` with your configuration.
 
 3. **Deploy with Docker Compose:**
    ```bash
