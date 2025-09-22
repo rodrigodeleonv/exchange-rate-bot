@@ -6,6 +6,10 @@ services:
       context: .
       dockerfile: Dockerfile
       target: production
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    image: exchange-rate-bot:latest
     container_name: exchange-rate-bot
     restart: unless-stopped
 
@@ -27,9 +31,9 @@ services:
 
     # Volume mounts
     volumes:
-      - ./data:/app/data:rw          # Database persistence
-      - ./logs:/app/logs:rw          # Log persistence
-      - /etc/localtime:/etc/localtime:ro  # Timezone sync
+      - ./.volumes/data:/app/data:rw          # Database persistence
+      - ./.volumes/logs:/app/logs:rw          # Log persistence
+      - /etc/localtime:/etc/localtime:ro      # Timezone sync
 
     # Health check
     healthcheck:
@@ -62,10 +66,7 @@ services:
 
   # Daily notifier service (cron-like)
   daily-notifier:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: production
+    image: exchange-rate-bot:latest
     container_name: exchange-rate-daily-notifier
     restart: unless-stopped
 
@@ -82,8 +83,8 @@ services:
 
     # Share database with main service
     volumes:
-      - ./data:/app/data:rw
-      - ./logs:/app/logs:rw
+      - ./.volumes/data:/app/data:rw
+      - ./.volumes/logs:/app/logs:rw
       - /etc/localtime:/etc/localtime:ro
 
     # Resource limits (lighter for notifier)
