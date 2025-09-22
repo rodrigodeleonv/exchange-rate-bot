@@ -7,7 +7,7 @@ from pydantic import BaseModel, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class ScrapperHeaderSettings(BaseModel):
+class ScraperHeaderSettings(BaseModel):
     """Scrapper headers class."""
 
     user_agent: str = (
@@ -77,7 +77,7 @@ class Config(BaseSettings):
     log: LoggingSettings
 
     scraper_url: ScraperUrlSettings = ScraperUrlSettings()
-    scraper_header: ClassVar[ScrapperHeaderSettings] = ScrapperHeaderSettings()
+    scraper_header: ClassVar[ScraperHeaderSettings] = ScraperHeaderSettings()
 
     production: bool
 
