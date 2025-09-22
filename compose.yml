@@ -1,11 +1,15 @@
 
 services:
-  # Main application service
+
   exchange-rate-bot:
     build:
       context: .
       dockerfile: Dockerfile
       target: production
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    image: exchange-rate-bot:latest
     container_name: exchange-rate-bot
     restart: unless-stopped
 
@@ -23,13 +27,13 @@ services:
 
     # Port mapping
     ports:
-      - "8000:8000"
+      - "23456:8000"
 
     # Volume mounts
     volumes:
-      - ./data:/app/data:rw          # Database persistence
-      - ./logs:/app/logs:rw          # Log persistence
-      - /etc/localtime:/etc/localtime:ro  # Timezone sync
+      - ./.volumes/data:/app/data:rw          # Database persistence
+      - ./.volumes/logs:/app/logs:rw          # Log persistence
+      - /etc/localtime:/etc/localtime:ro      # Timezone sync
 
     # Health check
     healthcheck:
@@ -60,17 +64,13 @@ services:
     networks:
       - exchange-rate-network
 
-  # Daily notifier service (cron-like)
-  daily-notifier:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: production
-    container_name: exchange-rate-daily-notifier
+  daily-scheduler:
+    image: exchange-rate-bot:latest
+    container_name: exchange-rate-daily-scheduler
     restart: unless-stopped
 
-    # Override command for daily notifications
-    command: ["python", "main.py", "daily"]
+    # Override command for scheduled notifications
+    command: ["python", "-m", "apps.scheduler_app"]
 
     # Environment configuration
     environment:
@@ -82,8 +82,8 @@ services:
 
     # Share database with main service
     volumes:
-      - ./data:/app/data:rw
-      - ./logs:/app/logs:rw
+      - ./.volumes/data:/app/data:rw
+      - ./.volumes/logs:/app/logs:rw
       - /etc/localtime:/etc/localtime:ro
 
     # Resource limits (lighter for notifier)
