@@ -25,11 +25,13 @@ fi
 
 # Show current migration status
 echo "📊 Current database revision:"
-if ! alembic current 2>alembic_error.log; then
+if ! alembic current 2>/tmp/alembic_error.log; then
     echo "❌ Unable to retrieve database revision - check database connection and alembic configuration"
     echo "Alembic error output:"
-    cat alembic_error.log
-    rm -f alembic_error.log
+    cat /tmp/alembic_error.log
+    rm -f /tmp/alembic_error.log
+else
+    echo "✅ Database revision retrieved successfully"
 fi
 
 # Execute the main command
