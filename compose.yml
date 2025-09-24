@@ -110,10 +110,6 @@ services:
       exchange-rate-bot:
         condition: service_healthy
 
-    # Profile for optional service
-    profiles:
-      - daily-notifications
-
 networks:
   exchange-rate-network:
     driver: bridge
