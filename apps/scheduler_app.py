@@ -16,7 +16,8 @@ from apscheduler.triggers.cron import CronTrigger
 from src.config import get_config
 from src.infrastructure.telegram_notification import TelegramNotification
 from src.logging_config import setup_logging
-from src.services import BotService, DailyNotificationService, ExchangeRateService
+from src.services import BotService, ExchangeRateService
+from src.services.daily_notification_service import DailyNotificationService
 
 setup_logging()
 logger = logging.getLogger(__name__)
