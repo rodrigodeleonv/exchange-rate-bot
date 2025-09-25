@@ -13,9 +13,7 @@ from src.database.models import TelegramNotificationSubscription
 class NotificationSubscriptionRepositoryBase(Protocol):
     """Protocol for notification subscription repository operations."""
 
-    async def create_subscription(
-        self, chat_id: int
-    ) -> TelegramNotificationSubscription:
+    async def create_subscription(self, chat_id: int) -> TelegramNotificationSubscription:
         """Create a new notification subscription.
 
         Args:
@@ -57,9 +55,7 @@ class NotificationSubscriptionRepository(NotificationSubscriptionRepositoryBase)
         """
         self.session = session
 
-    async def create_subscription(
-        self, chat_id: int
-    ) -> TelegramNotificationSubscription:
+    async def create_subscription(self, chat_id: int) -> TelegramNotificationSubscription:
         """Create a new notification subscription.
 
         Args:
@@ -68,6 +64,16 @@ class NotificationSubscriptionRepository(NotificationSubscriptionRepositoryBase)
         Returns:
             Created subscription instance
         """
+        # Check if subscription already exists
+        stmt = select(TelegramNotificationSubscription).where(
+            TelegramNotificationSubscription.chat_id == chat_id
+        )
+        result = await self.session.execute(stmt)
+        existing = result.scalars().first()
+
+        if existing:
+            return existing
+
         subscription = TelegramNotificationSubscription(chat_id=chat_id)
         self.session.add(subscription)
         await self.session.commit()

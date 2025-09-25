@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Prompts and Context for AI Assistant
 
 ## Project Context
@@ -34,14 +38,14 @@ This is an exchange rate bot that should:
 async def get_exchange_rate(source_currency: str, target_currency: str) -> float:
     """
     Gets the exchange rate between two currencies.
-    
+
     Args:
         source_currency: ISO code of source currency (e.g., 'USD')
         target_currency: ISO code of target currency (e.g., 'EUR')
-        
+
     Returns:
         Exchange rate as float
-        
+
     Raises:
         ValueError: If currencies are not valid
         APIError: If there are problems with external API
