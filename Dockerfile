@@ -24,6 +24,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 COPY src/ src/
 COPY apps/ apps/
+COPY templates/ templates/
 COPY main.py ./
 COPY alembic/ alembic/
 COPY alembic.ini ./
