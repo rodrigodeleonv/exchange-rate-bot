@@ -51,8 +51,9 @@ class BotHandlers:
                 await loading_msg.edit_text(response, parse_mode=ParseMode.HTML)
             except Exception:
                 error_response = (
-                    await self.bot_service.get_rates_response()
-                )  # This will return error message
+                    "❌ Error: No se pudieron obtener las tasas en este momento. "
+                    "Por favor, inténtalo de nuevo más tarde."
+                )
                 await loading_msg.edit_text(error_response, parse_mode=ParseMode.HTML)
 
         @self.dp.message(Command("subscribe"))
