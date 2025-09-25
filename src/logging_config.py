@@ -37,7 +37,10 @@ def setup_logging(log_dir: str | None = None) -> None:
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    console_formatter = logging.Formatter(fmt="%(levelname)s:%(name)s:%(message)s")
+    console_formatter = logging.Formatter(
+        fmt="%(asctime)s | %(levelname)s:%(name)s:%(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
 
     # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
