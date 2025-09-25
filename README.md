@@ -17,7 +17,7 @@ A Telegram bot that provides real-time USD/GTQ exchange rates from multiple bank
    git clone <repository-url>
    cd exchange-rate-bot
    ```
-1
+
 2. **Configure environment variables:**
    ```bash
    cp example.env .env

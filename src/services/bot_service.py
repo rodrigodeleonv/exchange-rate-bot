@@ -21,12 +21,8 @@ class BotService:
         """Initialize bot service with dependencies and template environment."""
         self.exchange_service = exchange_service
 
-        # Templates directory (root-level 'templates/')
         self._templates_dir = Path("templates")
-        self._messages_dir = self._templates_dir / "messages"
-        self._config_dir = self._templates_dir / "config"
 
-        # Initialize Jinja2 environment
         self._env = Environment(
             loader=FileSystemLoader(str(self._templates_dir)),
             autoescape=select_autoescape(["html", "xml"]),
@@ -34,19 +30,20 @@ class BotService:
             lstrip_blocks=True,
         )
 
-
     def _render(self, template_name: str, **context: object) -> str:
         """Render a template from templates/messages with shared context."""
         try:
             template = self._env.get_template(f"messages/{template_name}")
             # Inject common context
-            context.update({
-                "bank_display_names": {
-                    "banguat": "🏛️ Banguat (Oficial)",
-                    "banrural": "🏦 Banrural (Banca Virtual)",
-                    "nexa": "🏪 Nexa Banco (Compra)",
+            context.update(
+                {
+                    "bank_display_names": {
+                        "banguat": "🏛️ Banguat (Oficial)",
+                        "banrural": "🏦 Banrural (Banca Virtual)",
+                        "nexa": "🏪 Nexa Banco (Compra)",
+                    }
                 }
-            })
+            )
             return template.render(**context).strip()
         except Exception as e:
             logger.error("Error rendering template %s: %s", template_name, e)
@@ -78,7 +75,7 @@ class BotService:
             return self._render("rates.html", rates=rates, best_bank=best_bank)
         except Exception as e:
             logger.error("Error fetching rates: %s", e)
-            return self._render("errors.html", error_type="rates_error")
+            return "❌ Error al obtener las tasas de cambio. Intenta más tarde."
 
     async def subscribe_user(self, chat_id: int) -> str:
         """Subscribe user to daily notifications."""
