@@ -75,7 +75,7 @@ class BotService:
             return self._render("rates.html", rates=rates, best_bank=best_bank)
         except Exception as e:
             logger.error("Error fetching rates: %s", e)
-            return self._render("errors.html", error_type="rates_error")
+            return "❌ Error al obtener las tasas de cambio. Intenta más tarde."
 
     async def subscribe_user(self, chat_id: int) -> str:
         """Subscribe user to daily notifications."""
