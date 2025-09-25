@@ -1,0 +1,7 @@
+{% if error_type == "rates_error" %}
+❌ Error al obtener las tasas de cambio. Intenta más tarde.
+{% elif error_type == "general_error" %}
+❌ Ha ocurrido un error. Por favor intenta nuevamente.
+{% else %}
+❌ Error desconocido.
+{% endif %}
