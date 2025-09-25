@@ -168,12 +168,19 @@ The deployment creates a centralized volume structure:
 - [Pinggy](https://pinggy.io/)
 
 ```bash
-ssh -p 443 -R0:127.0.0.1:23456 qr@free.pinggy.io
+ssh -p 443 -R0:127.0.0.1:8000 qr@free.pinggy.io
 ```
 
 ## Database Management
 
-### Basic Alembic Commands
+### Automatic Migrations
+
+**Database migrations run automatically** when containers start:
+- ✅ **Docker containers**: Migrations run via `docker-entrypoint.sh`
+- ✅ **Always up-to-date**: Database schema stays current
+- ✅ **Zero-downtime**: Migrations complete before app starts
+
+### Manual Alembic Commands
 
 #### Creating Migrations
 ```bash
@@ -184,7 +191,7 @@ uv run alembic revision --autogenerate -m "Description of change"
 uv run alembic revision -m "Description of change"
 ```
 
-#### Running Migrations
+#### Running Migrations Manually
 ```bash
 # Apply all pending migrations
 uv run alembic upgrade head

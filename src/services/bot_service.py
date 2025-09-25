@@ -1,10 +1,15 @@
 """Bot service layer - contains business logic and response formatting."""
 
 import logging
+from datetime import datetime
+from pathlib import Path
+
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from src.database import get_session
 from src.repositories import NotificationSubscriptionRepository
 from src.services.exchange_rate_service import ExchangeRateService, Rates
+from src.utils.tz_utils import get_tz
 
 logger = logging.getLogger(__name__)
 
@@ -13,47 +18,61 @@ class BotService:
     """Service layer for bot business logic and response formatting."""
 
     def __init__(self, exchange_service: ExchangeRateService) -> None:
-        """Initialize bot service with dependencies."""
+        """Initialize bot service with dependencies and template environment."""
         self.exchange_service = exchange_service
+
+        self._templates_dir = Path("templates")
+
+        self._env = Environment(
+            loader=FileSystemLoader(str(self._templates_dir)),
+            autoescape=select_autoescape(["html", "xml"]),
+            trim_blocks=True,
+            lstrip_blocks=True,
+        )
+
+    def _render(self, template_name: str, **context: object) -> str:
+        """Render a template from templates/messages with shared context."""
+        try:
+            template = self._env.get_template(f"messages/{template_name}")
+            # Inject common context
+            context.update(
+                {
+                    "bank_display_names": {
+                        "banguat": "🏛️ Banguat (Oficial)",
+                        "banrural": "🏦 Banrural (Banca Virtual)",
+                        "nexa": "🏪 Nexa Banco (Compra)",
+                    }
+                }
+            )
+            return template.render(**context).strip()
+        except Exception as e:
+            logger.error("Error rendering template %s: %s", template_name, e)
+            return f"❌ Error al generar mensaje: {template_name}"
 
     async def get_start_message(self, user_name: str) -> str:
         """Generate start message for user."""
-        return (
-            f"¡Hola {user_name}! 👋\n"
-            "Soy tu bot de tipos de cambio.\n"
-            "Envía /help para ver los comandos disponibles."
-        )
+        return self._render("start.html", user_name=user_name)
 
     async def get_help_message(self) -> str:
         """Generate help message with available commands."""
-        return """
-🤖 **Comandos disponibles:**
-
-/start - Iniciar el bot
-/help - Mostrar esta ayuda
-/ping - Verificar que el bot funciona
-
-💱 **Tipos de cambio:**
-/rates - Ver todas las tasas de cambio USD/GTQ
-
-📢 **Notificaciones:**
-/subscribe - Recibir notificaciones diarias
-/unsubscribe - Cancelar notificaciones
-        """
+        return self._render("help.html")
 
     async def get_ping_message(self) -> str:
         """Generate ping response message."""
-        return "🏓 Pong! El bot está funcionando correctamente."
+        return self._render("ping.html")
 
     async def get_loading_message(self) -> str:
         """Generate loading message for rate requests."""
-        return "🔄 Obteniendo tasas de cambio..."
+        return self._render("loading.html")
 
     async def get_rates_response(self) -> str:
         """Get formatted exchange rates response."""
         try:
             rates = await self.exchange_service.get_all_rates()
-            return self._format_rates_message(rates)
+            # Compute best bank here (business logic belongs in service)
+            valid_rates = {k: v for k, v in rates.items() if v is not None}
+            best_bank = max(valid_rates, key=lambda k: valid_rates[k]) if valid_rates else None
+            return self._render("rates.html", rates=rates, best_bank=best_bank)
         except Exception as e:
             logger.error("Error fetching rates: %s", e)
             return "❌ Error al obtener las tasas de cambio. Intenta más tarde."
@@ -64,7 +83,7 @@ class BotService:
             repo = NotificationSubscriptionRepository(session)
             await repo.create_subscription(chat_id=chat_id)
         logger.info("User %s subscribed to notifications", chat_id)
-        return "✅ ¡Suscrito exitosamente!\n"
+        return self._render("subscription.html", action="subscribe_success")
 
     async def unsubscribe_user(self, chat_id: int) -> str:
         """Unsubscribe user from daily notifications."""
@@ -73,50 +92,19 @@ class BotService:
             success = await repo.delete_subscription(chat_id=chat_id)
         if success:
             logger.info("User %s unsubscribed from notifications", chat_id)
-            return "❌ Te has desuscrito de las notificaciones diarias."
+            return self._render("subscription.html", action="unsubscribe_success")
         else:
             logger.info("User %s was not subscribed to notifications", chat_id)
-            return "ℹ️ No estás suscrito a notificaciones."
-
-    def _format_rates_message(self, rates: Rates) -> str:
-        """Format rates data into user-friendly message."""
-        response_lines = ["💱 **Tasas de cambio USD/GTQ:**\n"]
-
-        # Find best rate for highlighting
-        valid_rates = {k: v for k, v in rates.items() if v is not None}
-        best_bank = max(valid_rates, key=lambda k: valid_rates[k]) if valid_rates else None
-
-        for bank_name, rate in rates.items():
-            display_name = self._get_bank_display_name(bank_name)
-
-            if rate is not None:
-                emoji = " ⭐" if bank_name == best_bank else ""
-                response_lines.append(f"{display_name}: **Q{rate:.4f}**{emoji}")
-            else:
-                response_lines.append(f"{display_name}: ❌ No disponible")
-
-        if best_bank:
-            response_lines.append(f"\n🏆 **Mejor tasa**: Q{valid_rates[best_bank]:.4f}")
-
-        return "\n".join(response_lines)
-
-    def _get_bank_display_name(self, bank_name: str) -> str:
-        """Get user-friendly display name for bank."""
-        display_names = {
-            "banguat": "🏛️ Banguat (Oficial)",
-            "banrural": "🏦 Banrural (Banca Virtual)",
-            "nexa": "🏪 Nexa Banco (Compra)",
-        }
-        return display_names.get(bank_name, bank_name)
+            return self._render("subscription.html", action="unsubscribe_not_found")
 
     async def format_daily_notification(self, rates: Rates) -> str:
         """Format daily notification message."""
-        from datetime import datetime
-
-        current_time = datetime.now().strftime("%d/%m/%Y %H:%M")
-        header = f"🌅 **Buenos días!**\n📅 {current_time}\n\n"
-
-        rates_message = self._format_rates_message(rates)
-        footer = "\n💡 Usa /rates para ver tasas actualizadas en cualquier momento"
-
-        return header + rates_message + footer
+        current_time = datetime.now(get_tz()).strftime("%d/%m/%Y %H:%M")
+        valid_rates = {k: v for k, v in rates.items() if v is not None}
+        best_bank = max(valid_rates, key=lambda k: valid_rates[k]) if valid_rates else None
+        return self._render(
+            "daily_notification.html",
+            rates=rates,
+            best_bank=best_bank,
+            date_time=current_time,
+        )

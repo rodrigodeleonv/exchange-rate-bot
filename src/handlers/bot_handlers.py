@@ -1,6 +1,7 @@
 """Bot message handlers - equivalent to FastAPI routers."""
 
 from aiogram import Dispatcher
+from aiogram.enums import ParseMode
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
 
@@ -24,50 +25,59 @@ class BotHandlers:
             """Handle /start command."""
             user_name = message.from_user.first_name if message.from_user else "Usuario"
             response = await self.bot_service.get_start_message(user_name)
-            await message.answer(response)
+            await message.answer(response, parse_mode=ParseMode.HTML)
 
         @self.dp.message(Command("help"))
         async def help_handler(message: Message) -> None:
             """Handle /help command."""
             response = await self.bot_service.get_help_message()
-            await message.answer(response)
+            await message.answer(response, parse_mode=ParseMode.HTML)
 
         @self.dp.message(Command("ping"))
         async def ping_handler(message: Message) -> None:
             """Handle /ping command."""
             response = await self.bot_service.get_ping_message()
-            await message.answer(response)
+            await message.answer(response, parse_mode=ParseMode.HTML)
 
         @self.dp.message(Command("rates"))
         async def rates_handler(message: Message) -> None:
             """Handle /rates command."""
             # Send loading message first
-            loading_msg = await message.answer("📊 Obteniendo tasas de cambio...")
+            loading_response = await self.bot_service.get_loading_message()
+            loading_msg = await message.answer(loading_response, parse_mode=ParseMode.HTML)
 
             try:
                 response = await self.bot_service.get_rates_response()
-                await loading_msg.edit_text(response)
+                await loading_msg.edit_text(response, parse_mode=ParseMode.HTML)
             except Exception:
-                await loading_msg.edit_text("❌ Error al obtener las tasas. Intenta de nuevo.")
+                error_response = (
+                    "❌ Error: No se pudieron obtener las tasas en este momento. "
+                    "Por favor, inténtalo de nuevo más tarde."
+                )
+                await loading_msg.edit_text(error_response, parse_mode=ParseMode.HTML)
 
         @self.dp.message(Command("subscribe"))
         async def subscribe_handler(message: Message) -> None:
             """Handle /subscribe command."""
             if not message.from_user:
-                await message.answer("❌ Error: No se pudo identificar el usuario.")
+                await message.answer(
+                    "❌ Error: No se pudo identificar el usuario.", parse_mode=ParseMode.HTML
+                )
                 return
 
             chat_id = message.chat.id
             response = await self.bot_service.subscribe_user(chat_id)
-            await message.answer(response)
+            await message.answer(response, parse_mode=ParseMode.HTML)
 
         @self.dp.message(Command("unsubscribe"))
         async def unsubscribe_handler(message: Message) -> None:
             """Handle /unsubscribe command."""
             if not message.from_user:
-                await message.answer("❌ Error: No se pudo identificar el usuario.")
+                await message.answer(
+                    "❌ Error: No se pudo identificar el usuario.", parse_mode=ParseMode.HTML
+                )
                 return
 
             chat_id = message.chat.id
             response = await self.bot_service.unsubscribe_user(chat_id)
-            await message.answer(response)
+            await message.answer(response, parse_mode=ParseMode.HTML)

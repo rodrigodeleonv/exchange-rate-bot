@@ -1,0 +1,8 @@
+{% if action == "subscribe_success" %}
+✅ ¡Suscrito exitosamente!
+Recibirás notificaciones diarias con las tasas de cambio.
+{% elif action == "unsubscribe_success" %}
+❌ Te has desuscrito de las notificaciones diarias.
+{% elif action == "unsubscribe_not_found" %}
+ℹ️ No estás suscrito a notificaciones.
+{% endif %}

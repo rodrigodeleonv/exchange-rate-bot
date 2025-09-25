@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Development Rules for Exchange Rate Bot
 
 ## Code Style
