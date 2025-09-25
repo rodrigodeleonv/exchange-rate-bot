@@ -93,12 +93,10 @@ class NotificationSubscriptionRepository(NotificationSubscriptionRepositoryBase)
             TelegramNotificationSubscription.chat_id == chat_id
         )
         result = await self.session.execute(stmt)
-        subscriptions = result.scalars().all()
+        subscription = result.scalar_one_or_none()
 
-        if subscriptions:
-            # Delete all subscriptions for this chat_id (handles duplicates)
-            for subscription in subscriptions:
-                await self.session.delete(subscription)
+        if subscription:
+            await self.session.delete(subscription)
             await self.session.commit()
             return True
         return False
