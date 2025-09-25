@@ -90,7 +90,7 @@ class TelegramNotificationSubscription(Base):
     __tablename__ = "notification_subscriptions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    chat_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    chat_id: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
 
     # Metadata
 
