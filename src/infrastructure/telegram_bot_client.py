@@ -37,14 +37,15 @@ class TelegramBotClient:
             self._bot = Bot(token=self.bot_token)
         return self._bot
 
-    async def send_message(self, chat_id: int, text: str) -> None:
+    async def send_message(self, chat_id: int, text: str, parser: str | None = None) -> None:
         """Send message to a specific chat.
 
         Args:
             chat_id: Telegram chat ID
-            text: Message text to send
+            text: Message text to send (supports HTML formatting)
+            parser: Parse mode (e.g., "HTML", "Markdown")
         """
-        await self.bot.send_message(chat_id=chat_id, text=text)
+        await self.bot.send_message(chat_id=chat_id, text=text, parse_mode=parser)
 
     async def set_webhook(self) -> None:
         """Set webhook URL for the bot."""
