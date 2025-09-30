@@ -22,9 +22,10 @@ class BotService:
         self.exchange_service = exchange_service
 
         self._templates_dir = Path("templates")
+        self._messages_dir = self._templates_dir / "messages"
 
         self._env = Environment(
-            loader=FileSystemLoader(str(self._templates_dir)),
+            loader=FileSystemLoader(str(self._messages_dir)),
             autoescape=select_autoescape(["html", "xml"]),
             trim_blocks=True,
             lstrip_blocks=True,
@@ -33,7 +34,7 @@ class BotService:
     def _render(self, template_name: str, **context: object) -> str:
         """Render a template from templates/messages with shared context."""
         try:
-            template = self._env.get_template(f"messages/{template_name}")
+            template = self._env.get_template(template_name)
             # Inject common context
             context.update(
                 {
