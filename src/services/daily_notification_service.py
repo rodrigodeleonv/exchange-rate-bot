@@ -81,9 +81,7 @@ class DailyNotificationService:
 
             async for chat_id in repo.get_all_chat_ids():
                 try:
-                    await self.telegram_client.send_message(
-                        chat_id=chat_id, text=message, parser="HTML"
-                    )
+                    await self.telegram_client.send_message(chat_id=chat_id, text=message)
                     sent_count += 1
                     logger.info("✅ Daily rates sent to chat_id: %s", chat_id)
 
