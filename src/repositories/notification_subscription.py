@@ -15,7 +15,7 @@ class NotificationSubscriptionRepositoryBase(Protocol):
     """Protocol for notification subscription repository operations."""
 
     async def create_subscription(self, chat_id: int) -> TelegramNotificationSubscription:
-        """Create a new notification subscription.
+        """Get or create a new notification subscription.
 
         Args:
             chat_id: Telegram chat ID to subscribe
@@ -57,7 +57,7 @@ class NotificationSubscriptionRepository(NotificationSubscriptionRepositoryBase)
         self.session = session
 
     async def create_subscription(self, chat_id: int) -> TelegramNotificationSubscription:
-        """Create a new notification subscription.
+        """Get or create a new notification subscription.
 
         Args:
             chat_id: Telegram chat ID to subscribe
@@ -125,7 +125,7 @@ class SessionScopedSubscriptionRepository(NotificationSubscriptionRepositoryBase
     """
 
     async def create_subscription(self, chat_id: int) -> TelegramNotificationSubscription:
-        """Create a new notification subscription.
+        """Get or create a new notification subscription.
 
         Args:
             chat_id: Telegram chat ID to subscribe
