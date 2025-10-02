@@ -6,8 +6,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from src.database import get_session
-from src.repositories import NotificationSubscriptionRepository
+from src.repositories import NotificationSubscriptionRepositoryBase
 from src.services.exchange_rate_service import ExchangeRateService, Rates
 from src.utils.tz_utils import get_tz
 
@@ -17,9 +16,19 @@ logger = logging.getLogger(__name__)
 class BotService:
     """Service layer for bot business logic and response formatting."""
 
-    def __init__(self, exchange_service: ExchangeRateService) -> None:
-        """Initialize bot service with dependencies and template environment."""
+    def __init__(
+        self,
+        exchange_service: ExchangeRateService,
+        subscription_repo: NotificationSubscriptionRepositoryBase,
+    ) -> None:
+        """Initialize bot service with dependencies and template environment.
+
+        Args:
+            exchange_service: Service for fetching exchange rates
+            subscription_repo: Repository for notification subscriptions
+        """
         self.exchange_service = exchange_service
+        self.subscription_repo = subscription_repo
 
         self._templates_dir = Path("templates")
         self._messages_dir = self._templates_dir / "messages"
@@ -80,17 +89,13 @@ class BotService:
 
     async def subscribe_user(self, chat_id: int) -> str:
         """Subscribe user to daily notifications."""
-        async with get_session() as session:
-            repo = NotificationSubscriptionRepository(session)
-            await repo.create_subscription(chat_id=chat_id)
+        await self.subscription_repo.create_subscription(chat_id=chat_id)
         logger.info("User %s subscribed to notifications", chat_id)
         return self._render("subscription.html", action="subscribe_success")
 
     async def unsubscribe_user(self, chat_id: int) -> str:
         """Unsubscribe user from daily notifications."""
-        async with get_session() as session:
-            repo = NotificationSubscriptionRepository(session)
-            success = await repo.delete_subscription(chat_id=chat_id)
+        success = await self.subscription_repo.delete_subscription(chat_id=chat_id)
         if success:
             logger.info("User %s unsubscribed from notifications", chat_id)
             return self._render("subscription.html", action="unsubscribe_success")
