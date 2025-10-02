@@ -220,6 +220,14 @@ uv run pyright
 uv run ruff check && uv run ruff format && uv run pyright
 ```
 
+### Webhook Testing
+
+Simplify webhook testing with temporal URLs from [Pinggy](https://pinggy.io/), you must update the webhook URL in the bot configuration.
+
+```bash
+ssh -p 443 -R0:127.0.0.1:8000 qr@free.pinggy.io
+```
+
 ### Testing
 
 ```bash
