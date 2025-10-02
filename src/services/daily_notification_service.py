@@ -78,7 +78,9 @@ class DailyNotificationService:
         sent_count = 0
         error_count = 0
 
-        async for chat_id in self.subscription_repo.get_all_chat_ids():
+        # Materialize chat IDs to avoid holding DB session during send loop
+        chat_ids = [cid async for cid in self.subscription_repo.get_all_chat_ids()]
+        for chat_id in chat_ids:
             try:
                 await self.telegram_client.send_message(chat_id=chat_id, text=message)
                 sent_count += 1
