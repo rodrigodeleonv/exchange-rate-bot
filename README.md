@@ -464,11 +464,6 @@ exchange-rate-bot/
 - Async session management
 - SQLAlchemy configuration
 
-**8. Template Layer (`src/templates/`, `templates/`)**
-- Jinja2 template engine
-- HTML templates for bot messages
-- Separates content from code
-
 ### Design Principles
 
 **SOLID Principles:**
