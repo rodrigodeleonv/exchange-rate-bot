@@ -2,7 +2,9 @@
 
 import logging
 
+import aiohttp
 from aiogram import Bot
+from aiogram.client.session.aiohttp import AiohttpSession
 
 from src.config import get_config
 from src.utils import build_url
@@ -21,6 +23,7 @@ class TelegramBotClient:
     def _load_config(self) -> None:
         """Load configuration from environment."""
         self.bot_token = get_config().telegram.bot_token.get_secret_value()
+        self.request_timeout = get_config().telegram.request_timeout
         self.webhook_url = self.build_webhook_url()
         self.webhook_secret_token = get_config().server.webhook_secret_token.get_secret_value()
         self.host = get_config().server.host
@@ -32,9 +35,13 @@ class TelegramBotClient:
 
     @property
     def bot(self) -> Bot:
-        """Get or create Bot instance."""
+        """Get or create Bot instance with configured timeout."""
         if self._bot is None:
-            self._bot = Bot(token=self.bot_token)
+            # Configure aiohttp session with timeout
+            timeout = aiohttp.ClientTimeout(total=self.request_timeout)
+            session = AiohttpSession(timeout=timeout)
+            self._bot = Bot(token=self.bot_token, session=session)
+            logger.info("Bot initialized with %s second timeout", self.request_timeout)
         return self._bot
 
     async def send_message(self, chat_id: int, text: str, parse_mode: str = "HTML") -> None:

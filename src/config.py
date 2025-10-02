@@ -34,6 +34,7 @@ class TelegramSettings(BaseModel):
 
     bot_token: SecretStr
     cleanup_webhook_on_shutdown: bool
+    request_timeout: int = 30  # HTTP request timeout in seconds
 
 
 class ServerSettings(BaseModel):
