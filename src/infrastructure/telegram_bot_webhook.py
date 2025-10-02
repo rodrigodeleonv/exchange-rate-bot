@@ -6,6 +6,7 @@ from aiogram import Dispatcher
 from aiogram.types import Update
 
 from src.handlers.bot_handlers import BotHandlers
+from src.repositories import SessionScopedSubscriptionRepository
 from src.services.bot_service import BotService
 from src.services.exchange_rate_service import ExchangeRateService
 
@@ -24,12 +25,17 @@ class TelegramBotWebhook(TelegramBotClient):
         self.handlers: BotHandlers | None = None
 
     def setup(self) -> None:
-        """Initialize bot components and register handlers."""
+        """Initialize bot components and register handlers.
+
+        Note: The repository creates a new database session per operation (request-scoped pattern).
+        """
         self.dp = Dispatcher()
 
-        # Initialize services
+        # Initialize services with dependency injection
         exchange_service = ExchangeRateService()
-        bot_service = BotService(exchange_service)
+        # Create a repository that creates sessions on-demand per request
+        subscription_repo = SessionScopedSubscriptionRepository()
+        bot_service = BotService(exchange_service, subscription_repo)
 
         # Initialize handlers with auto-registration
         self.handlers = BotHandlers(self.dp, bot_service)
