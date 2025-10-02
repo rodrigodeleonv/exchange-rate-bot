@@ -414,7 +414,6 @@ exchange-rate-bot/
 │   ├── infrastructure/     # External services (Telegram, HTTP)
 │   ├── scrapers/           # Bank data scrapers
 │   ├── database/           # ORM models & session management
-│   ├── templates/          # Template engine
 │   └── utils/              # Pure utility functions
 │
 ├── templates/              # 📝 Jinja2 Message Templates
