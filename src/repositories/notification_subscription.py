@@ -156,7 +156,10 @@ class SessionScopedSubscriptionRepository(NotificationSubscriptionRepositoryBase
         Returns:
             AsyncIterator yielding chat_ids one by one.
         """
+        chat_ids = []
         async with get_session() as session:
             repo = NotificationSubscriptionRepository(session)
             async for chat_id in repo.get_all_chat_ids():
-                yield chat_id
+                chat_ids.append(chat_id)
+        for chat_id in chat_ids:
+            yield chat_id
