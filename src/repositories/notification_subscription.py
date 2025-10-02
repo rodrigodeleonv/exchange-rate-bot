@@ -119,9 +119,9 @@ class NotificationSubscriptionRepository(NotificationSubscriptionRepositoryBase)
 class SessionScopedSubscriptionRepository(NotificationSubscriptionRepositoryBase):
     """Repository that creates a new session for each operation.
 
-    This implementation follows the request-scoped session pattern,
-    creating and closing a database session for each repository operation.
-    Ideal for webhook handlers where each request should have its own session.
+    This implementation creates and closes a database session for each repository operation
+    (i.e., each method call). This is suitable for use cases where each operation should be
+    isolated in its own session, such as webhook handlers or background jobs.
     """
 
     async def create_subscription(self, chat_id: int) -> TelegramNotificationSubscription:
