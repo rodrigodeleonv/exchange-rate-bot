@@ -3,9 +3,8 @@
 import asyncio
 import logging
 
-from src.database import get_session
 from src.infrastructure.telegram_notification import TelegramNotification
-from src.repositories import NotificationSubscriptionRepository
+from src.repositories import NotificationSubscriptionRepositoryBase
 from src.services.bot_service import BotService
 from src.services.exchange_rate_service import ExchangeRateService
 
@@ -20,6 +19,7 @@ class DailyNotificationService:
         exchange_service: ExchangeRateService,
         bot_service: BotService,
         telegram_client: TelegramNotification,
+        subscription_repo: NotificationSubscriptionRepositoryBase,
     ):
         """Initialize the daily notification service.
 
@@ -27,10 +27,12 @@ class DailyNotificationService:
             exchange_service: Service for fetching exchange rates
             bot_service: Service for formatting messages
             telegram_client: Client for sending Telegram messages
+            subscription_repo: Repository for notification subscriptions
         """
         self.exchange_service = exchange_service
         self.bot_service = bot_service
         self.telegram_client = telegram_client
+        self.subscription_repo = subscription_repo
 
     async def send_daily_notifications(self) -> tuple[int, int]:
         """Send daily exchange rate notifications to all subscribers.
@@ -76,22 +78,19 @@ class DailyNotificationService:
         sent_count = 0
         error_count = 0
 
-        async with get_session() as session:
-            repo = NotificationSubscriptionRepository(session)
+        async for chat_id in self.subscription_repo.get_all_chat_ids():
+            try:
+                await self.telegram_client.send_message(chat_id=chat_id, text=message)
+                sent_count += 1
+                logger.info("✅ Daily rates sent to chat_id: %s", chat_id)
 
-            async for chat_id in repo.get_all_chat_ids():
-                try:
-                    await self.telegram_client.send_message(chat_id=chat_id, text=message)
-                    sent_count += 1
-                    logger.info("✅ Daily rates sent to chat_id: %s", chat_id)
+                # Small delay to avoid rate limiting
+                await asyncio.sleep(0.1)
 
-                    # Small delay to avoid rate limiting
-                    await asyncio.sleep(0.1)
-
-                except Exception as e:
-                    error_count += 1
-                    logger.error("❌ Error sending to chat_id %s: %s", chat_id, e)
-                    continue
+            except Exception as e:
+                error_count += 1
+                logger.error("❌ Error sending to chat_id %s: %s", chat_id, e)
+                continue
 
         return sent_count, error_count
 

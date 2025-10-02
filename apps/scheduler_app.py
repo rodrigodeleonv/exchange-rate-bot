@@ -42,6 +42,7 @@ class ExchangeRateScheduler:
             exchange_service=exchange_service,
             bot_service=bot_service,
             telegram_client=telegram_client,
+            subscription_repo=subscription_repo,
         )
 
         # Setup graceful shutdown
