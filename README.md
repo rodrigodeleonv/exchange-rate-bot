@@ -1,424 +1,595 @@
 # 🤖 Exchange Rate Bot
 
-A Telegram bot that provides real-time USD/GTQ exchange rates from multiple banks with webhook support and scheduled notifications.
+A Telegram bot that provides real-time USD/GTQ exchange rates from multiple banks with webhook support and scheduled daily notifications.
+
+## ✨ Features
+
+- **📊 Real-time Exchange Rates**: Fetch current USD/GTQ rates from multiple banks
+- **🔔 Daily Notifications**: Automated notifications at configurable time
+- **🏦 Multiple Sources**: official bank and commercial banks
+- **⚡ Fast & Async**: Built with modern async Python for high performance
+- **🐳 Docker Ready**: Easy deployment with Docker Compose
+- **🔒 Secure**: Bearer token authentication for admin endpoints
+- **📝 Template System**: Jinja2-based message templates with HTML support
+
+## 🤖 Bot Commands
+
+- `/start` - Welcome message and bot introduction
+- `/help` - Show available commands and usage
+- `/ping` - Test bot responsiveness
+- `/rates` - Get current exchange rates from all banks
+- `/subscribe` - Subscribe to daily rate notifications
+- `/unsubscribe` - Unsubscribe from notifications
 
 ## 🚀 Deployment
 
 ### Prerequisites
 
-- Docker & Docker Compose
-- Telegram Bot Token (from [@BotFather](https://t.me/botfather))
-- Domain with SSL certificate (for webhook mode)
+- **Docker & Docker Compose** (20.10+)
+- **Telegram Bot Token** from [@BotFather](https://t.me/botfather)
+- **Domain with SSL** (for webhook mode)
 
-### Automated Deployment
+### Quick Start
 
-1. **Clone the repository:**
+1. **Clone and configure:**
    ```bash
    git clone <repository-url>
    cd exchange-rate-bot
+   cp example.env .env
+   # Edit .env with your bot token and configuration
    ```
 
-2. **Configure environment variables:**
+2. **Deploy:**
+   ```bash
+   ./deploy.sh
+   ```
+
+
+### Environment Configuration
+
+Edit `.env` with your settings:
+
+
+### Docker Compose Services
+
+The bot runs two services:
+
+**webhook** - FastAPI server for real-time bot interactions
+```yaml
+webhook:
+  command: python main.py webhook
+  ports:
+    - "23456:23456"
+  restart: unless-stopped
+```
+
+**scheduler** - APScheduler for daily notifications
+```yaml
+scheduler:
+  command: python -m apps.scheduler_app
+  restart: unless-stopped
+```
+
+### Volume Structure
+
+```
+.volumes/
+├── data/                    # Database files
+│   └── exchange_bot.db     # SQLite database
+└── logs/                    # Application logs
+    ├── app.log             # General logs
+    └── errors.log          # Error logs
+```
+
+### Webhook Setup
+
+1. Configure Reverse Proxy
+
+2. Set Telegram Webhook (Automatically registered in the bot)
+
+### Database Migrations
+
+Migrations run **automatically** when containers start via `docker-entrypoint.sh`.
+
+For manual management:
+```bash
+# Enter container
+docker compose exec webhook bash
+
+# Run migrations
+alembic upgrade head
+
+# Check current revision
+alembic current
+```
+
+### Monitoring & Health Checks
+
+```bash
+# Application health
+# curl /health
+
+# Container status
+docker compose ps
+docker compose logs -f
+
+# View specific service logs
+docker compose logs -f webhook
+docker compose logs -f scheduler
+```
+
+### Troubleshooting
+
+**Bot not responding:**
+```bash
+# Check webhook status
+curl "https://api.telegram.org/bot<TOKEN>/getWebhookInfo"
+
+# Delete and reset webhook
+curl -X POST "https://api.telegram.org/bot<TOKEN>/deleteWebhook"
+```
+
+**Port conflicts:**
+```bash
+# Find process using port
+lsof -i :23456
+
+# Kill process
+kill -9 <PID>
+```
+
+**Permission issues:**
+```bash
+# Fix volume permissions
+sudo chown -R $(id -u):$(id -g) .volumes/
+chmod -R 755 .volumes/
+```
+
+---
+
+## 👨‍💻 Development
+
+### Prerequisites
+
+- **Python 3.13+**
+- **uv** (Python package manager)
+- **Docker & Docker Compose** (for deployment)
+
+### Local Setup
+
+1. **Install uv:**
+   ```bash
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   uv sync
+   ```
+
+3. **Configure environment:**
    ```bash
    cp example.env .env
    # Edit .env with your configuration
    ```
 
-3. **Deploy with automated script:**
+4. **Set up database:**
    ```bash
-   ./deploy.sh
-   ```
-
-   The deploy script automatically:
-   - ✅ Creates volume structure (`.volumes/`)
-   - ✅ Configures correct permissions
-   - ✅ Detects current user UID/GID for cross-platform compatibility
-   - ✅ Shows deployment status and logs
-
-4. Always clean build when deploying. Use:
-   ```bash
-   docker system prune -f
-   ```
-
-### Manual Docker Commands
-
-If you prefer manual Docker commands:
-
-```bash
-# Build with current user UID/GID
-docker compose build --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g)
-
-# Deploy services
-docker compose up -d
-
-# View logs
-docker compose logs -f
-```
-
-
-#### Common Issues
-
-1. **Bot not responding:**
-   ```bash
-   # Check if webhook is set correctly
-   curl "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getWebhookInfo"
-
-   # Delete webhook if needed
-   curl -X POST "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/deleteWebhook"
-   ```
-
-2. **Database connection errors:**
-   ```bash
-   # Check database status
-   uv run alembic current
-
-   # Apply pending migrations
    uv run alembic upgrade head
    ```
 
-3. **Port conflicts:**
-   ```bash
-   # Kill existing processes
-   pkill -f "python main.py"
+### Running Locally
 
-   # Check port usage
-   lsof -i :23456
-   ```
-
-#### Health Checks
-
-- **Bot health:** `curl http://localhost:23456/health`
-- **Webhook status:** `curl http://localhost:23456/webhook` (should return 405)
-- **Set webhook:** `curl -X POST "https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook" -d "url=https://<YOUR_DOMAIN>/webhook"`
-- **Database:** `uv run alembic current`
-
-## 🚀 Quick Start
-
-### Run the Bot
+**Webhook Mode:**
 ```bash
-# Start webhook server (default)
-python main.py
+# Kill existing processes first
+pkill -f "python main.py"
+
+# Start webhook server
+uv run python main.py
+```
+
+**Scheduler Mode:**
+```bash
+# Kill existing processes first
+pkill -f "python -m apps.scheduler_app"
 
 # Start scheduler
-python -m apps.scheduler_app
+uv run python -m apps.scheduler_app
 
 # Test scheduler (run once)
-python -m apps.scheduler_app --run-once
-
-# Show help
-python main.py help
+uv run python -m apps.scheduler_app --run-once
 ```
 
-### Available Applications
-- **🌐 Webhook Server**: FastAPI-based real-time bot interactions
-- **⏰ Scheduler**: Automated daily notifications at 8:00 AM Guatemala time
-
-## 🏗️ Architecture
-
-Clean Architecture with layered design:
-
-```
-├── apps/                    # 📱 Applications Layer (Entry Points)
-├── src/
-│   ├── infrastructure/      # 🔧 Infrastructure (Telegram, HTTP)
-│   ├── handlers/           # 🎯 Presentation (Bot Commands)
-│   ├── services/           # ⚙️ Business Logic
-│   ├── repositories/       # 📦 Data Access
-│   └── database/          # 🗄️ Persistence
-```
-
-### Volume Structure
-
-The deployment creates a centralized volume structure:
-
-```
-.volumes/
-├── logs/                    # Application logs
-│   ├── app.log             # General application logs
-│   └── errors.log          # Error-specific logs
-└── data/                    # Persistent data
-    └── exchange_bot.db     # SQLite database
-```
-
-**Benefits:**
-- ✅ Centralized data management
-- ✅ Easy backup and restore
-- ✅ Cross-platform permission handling
-- ✅ Development and production consistency
-
-## 🤖 Bot Commands
-
-- `/start` - Welcome message
-- `/help` - Show available commands
-- `/ping` - Test bot responsiveness
-- `/rates` - Get current exchange rates
-- `/subscribe` - Subscribe to daily notifications
-- `/unsubscribe` - Unsubscribe from notifications
-
-## 💱 Supported Banks
-
-- **Banguat** (Banco de Guatemala) - Official rates
-- **Banrural** - Commercial rates
-- **Nexa Banco** - Digital banking rates
-
-## References
-
-- [Nexa Banco](https://www.nexabanco.com/)
-
-- [Pinggy](https://pinggy.io/)
+### Code Quality
 
 ```bash
-ssh -p 443 -R0:127.0.0.1:8000 qr@free.pinggy.io
+# Check code style
+uv run ruff check
+
+# Fix auto-fixable issues
+uv run ruff check --fix
+
+# Format code
+uv run ruff format
+
+# Type check
+uv run pyright
+
+# Run all checks
+uv run ruff check && uv run ruff format && uv run pyright
 ```
 
-## Database Management
+### Testing
 
-### Automatic Migrations
-
-**Database migrations run automatically** when containers start:
-- ✅ **Docker containers**: Migrations run via `docker-entrypoint.sh`
-- ✅ **Always up-to-date**: Database schema stays current
-- ✅ **Zero-downtime**: Migrations complete before app starts
-
-### Manual Alembic Commands
-
-#### Creating Migrations
 ```bash
-# Create automatic migration (detects model changes)
-uv run alembic revision --autogenerate -m "Description of change"
+# Run all tests
+uv run pytest
 
-# Create empty migration (for manual changes)
-uv run alembic revision -m "Description of change"
+# Run specific test file
+uv run pytest tests/unit/test_utils/test_url_utils.py
+
+# Run with coverage
+uv run pytest --cov=src --cov-report=html
+
+# Run with verbose output
+uv run pytest -v
 ```
 
-#### Running Migrations Manually
+### Database Management
+
+**Create Migration:**
 ```bash
-# Apply all pending migrations
+# Auto-generate from model changes
+uv run alembic revision --autogenerate -m "Add new field"
+
+# Create empty migration
+uv run alembic revision -m "Add custom index"
+```
+
+**Apply Migrations:**
+```bash
+# Apply all pending
 uv run alembic upgrade head
 
-# Apply up to a specific migration
+# Apply specific migration
 uv run alembic upgrade <revision_id>
 
-# Apply only the next migration
+# Apply next migration only
 uv run alembic upgrade +1
 ```
 
-#### Reverting Migrations
+**Revert Migrations:**
 ```bash
-# Revert to previous migration
+# Revert last migration
 uv run alembic downgrade -1
 
-# Revert to a specific migration
+# Revert to specific migration
 uv run alembic downgrade <revision_id>
 
-# Revert all migrations
+# Revert all
 uv run alembic downgrade base
 ```
 
-#### Information and Status
+**Migration Status:**
 ```bash
 # View current migration
 uv run alembic current
 
-# View migration history
+# View history
 uv run alembic history
 
-# View pending migrations
+# Check pending
 uv run alembic show head
-
-# View details of a specific migration
-uv run alembic show <revision_id>
 ```
 
-#### Development Utilities
-```bash
-# Mark migration as applied (without executing)
-uv run alembic stamp head
-
-# View differences between database and models
-uv run alembic check
-
-# Generate SQL without executing
-uv run alembic upgrade head --sql
-```
-
-### Typical Workflow
-
-1. **Modify models** in `src/database/models.py`
-2. **Create migration**: `uv run alembic revision --autogenerate -m "Add new field"`
-3. **Review generated migration** in `alembic/versions/`
-4. **Apply migration**: `uv run alembic upgrade head`
-
-### ⚠️ Important Tips
-
-- **Always review** autogenerated migrations before applying them
-- **Backup database** before applying migrations in production
-- **Use descriptive messages** for migrations
-- **Test migrations** in development before production
-
-
-## aiohttp
-
-[aiohttp client quickstart](https://docs.aiohttp.org/en/stable/client_quickstart.html)
-
-Note
-Don’t create a session per request. Most likely you need a session per application which performs all requests together.
-
-More complex cases may require a session per site, e.g. one for Github and other one for Facebook APIs. Anyway making a session for every request is a very bad idea.
-
-A session contains a connection pool inside. Connection reusage and keep-alive (both are on by default) may speed up total performance.
-
-## Banrural API Discovery
-
-### Summary
-
-This document explains the step-by-step process of how Banrural's internal API was discovered and implemented to obtain USD exchange rates.
-
-### Initial Problem
-
-When attempting traditional web scraping of the Banrural website (https://www.banrural.com.gt/site/personas), the scraper could not find exchange rates in the initial HTML. The elements existed but were empty:
-
-```html
-<p id="efectivo-compra">Q</p>
-<p id="documento-compra">Q</p>
-<p id="banca-viarual-compra-mobile">Q</p>
-```
-
-### Discovery Process
-
-#### 1. Initial HTML Analysis
-
-First, the main page HTML was analyzed using `curl`:
-
-```bash
-curl -s "https://www.banrural.com.gt/site/personas" | grep -i "7\.59\|cambio\|dolar\|usd" -A 3 -B 3
-```
-
-**Result:** HTML elements with exchange rate-related IDs were found, but without values.
-
-#### 2. Dynamic Loading Identification
-
-The HTML showed that data is loaded dynamically via JavaScript:
-
-```html
-<script src="https://www.banrural.com.gt/hubfs/.../template_tipo_de_cambio.min.js"></script>
-```
-
-#### 3. JavaScript Analysis
-
-The JavaScript file was downloaded and analyzed:
-
-```bash
-curl -s "https://www.banrural.com.gt/hubfs/hub_generated/template_assets/1/188510768808/1753208208135/template_tipo_de_cambio.js"
-```
-
-**Key finding:** The JavaScript contained code that populated HTML elements:
-
-```javascript
-$('#efectivo-compra').text('Q' + datosCompletos.compra_dolares);
-$('#documento-compra').text('Q' + datosCompletos.compra_dolares_docto);
-$('#banca-viarual-compra-mobile').text('Q' + datosCompletos.compra_dolares_docto_bv);
-```
-
-#### 4. API Discovery
-
-Continuing the JavaScript analysis, the AJAX call was found:
-
-```javascript
-$.ajax({
-  url: '/_hcms/api/site/banrural/tasadecambio',
-  type: 'GET',
-  contentType: 'application/json',
-  data: JSON.stringify(),
-```
-
-**Eureka!** The internal API was: `/_hcms/api/site/banrural/tasadecambio`
-
-#### 5. Initial API Test
-
-First direct test:
-
-```bash
-curl -s "https://www.banrural.com.gt/_hcms/api/site/banrural/tasadecambio"
-```
-
-**Result:** `{"error":"Acceso no autorizado"}`
-
-#### 6. Required Headers Analysis
-
-To simulate a legitimate browser request, specific headers were added:
-
-```bash
-curl -s "https://www.banrural.com.gt/_hcms/api/site/banrural/tasadecambio" \
-  -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
-  -H "Referer: https://www.banrural.com.gt/site/personas" \
-  -H "X-Requested-With: XMLHttpRequest"
-```
-
-**Success!** The API responded with complete JSON data:
-
-```json
-{
-  "compra_dolares": "7.53",
-  "venta_dolares": "7.80",
-  "compra_euros": "8.36",
-  "venta_euros": "9.75",
-  "compra_dolares_docto": "7.56",
-  "venta_dolares_docto": "7.80",
-  "compra_dolares_docto_bv": "7.59",
-  "venta_dolares_docto_bv": "7.77",
-  "compra_euros_docto": "8.47",
-  "venta_euros_docto": "9.75"
-}
-```
-
-### Value Mapping
-
-| API Field | Description | Value |
-|-----------|-------------|-------|
-| `compra_dolares` | Cash USD (Buy) | 7.53 |
-| `compra_dolares_docto` | Document USD (Buy) | 7.56 |
-| `compra_dolares_docto_bv` | **Virtual Banking APP (Buy)** | **7.59** |
-| `venta_dolares` | Cash USD (Sell) | 7.80 |
-| `venta_dolares_docto` | Document USD (Sell) | 7.80 |
-| `venta_dolares_docto_bv` | Virtual Banking APP (Sell) | 7.77 |
-
-### Final Implementation
-
-#### Critical Headers
+### Logging Best Practices
 
 ```python
-api_headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Referer": "https://www.banrural.com.gt/site/personas",
-    "X-Requested-With": "XMLHttpRequest"
-}
+import logging
+
+logger = logging.getLogger(__name__)
+
+# ✅ Good: Use %s interpolation
+logger.info("Processing %s items for user %s", count, user_id)
+
+# ❌ Avoid: f-strings (formats even when logging disabled)
+logger.info(f"Processing {count} items for user {user_id}")
+
+# Log levels
+logger.debug("Detailed debug information")
+logger.info("Business event occurred")
+logger.warning("Something unexpected happened")
+logger.error("Error occurred", exc_info=True)
+logger.critical("Critical system failure")
 ```
 
-#### Specific Value Extraction
+### Adding New Features
+
+#### Add New Scraper
 
 ```python
-if "compra_dolares_docto_bv" in data:
-    rate = float(data["compra_dolares_docto_bv"])  # 7.59
-    return rate
+# src/scrapers/new_bank_scraper.py
+from src.scrapers.base_scraper import ExchangeRateScraper
+
+class NewBankScraper(ExchangeRateScraper):
+    """Scraper for New Bank exchange rates."""
+
+    def __init__(self):
+        self.base_url = "https://newbank.com/api/rates"
+
+    async def get_exchange_rate(self) -> float:
+        """Fetch USD/GTQ exchange rate."""
+        # Implementation here
+        pass
 ```
 
-#### Authentication Headers
-- `Referer`: Indicates where the request comes from
-- `X-Requested-With: XMLHttpRequest`: Identifies AJAX requests
-- `User-Agent`: Simulates a real browser
+Register in `src/services/exchange_rate_service.py`:
+```python
+from src.scrapers.new_bank_scraper import NewBankScraper
 
-#### Hybrid Strategy
-- API first (more reliable and faster)
-- Fallback to web scraping if API fails
+class ExchangeRateService:
+    def __init__(self):
+        self.scrapers = {
+            "banguat": BanguatClient(),
+            "banrural": BanruralScraper(),
+            "nexa": NexaScraper(),
+            "newbank": NewBankScraper(),  # Add here
+        }
+```
 
-#### Tools Used
+#### Add New Bot Command
 
-1. **curl** - For making HTTP requests and analyzing responses
-2. **grep** - For searching patterns in HTML and JavaScript
-3. **Manual analysis** - To understand JavaScript logic
-4. **aiohttp** - To implement the asynchronous Python client
+Add handler in `src/handlers/bot_handlers.py`:
+```python
+async def new_command_handler(self, message: Message):
+    """Handle /newcommand."""
+    result = await self.bot_service.handle_new_command(message.from_user.id)
+    await message.answer(result)
+```
 
-#### Final Result
+Register in `src/infrastructure/telegram_bot_webhook.py`:
+```python
+self.dp.message.register(
+    self.handlers.new_command_handler,
+    Command("newcommand")
+)
+```
 
-The scraper now obtains the exchange rate for **Virtual Banking APP (Buy)** directly from Banrural's internal API, being much more efficient and reliable than traditional web scraping.
+Add business logic in `src/services/bot_service.py`:
+```python
+async def handle_new_command(self, user_id: int) -> str:
+    """Handle new command logic."""
+    return self.template_engine.render("new_command.html", {})
+```
+
+Create template in `templates/messages/new_command.html`:
+```html
+<b>New Command Response</b>
+
+This is the response for the new command.
+```
+
+### Code Style Guidelines
+
+**Naming Conventions:**
+- Variables & Functions: `snake_case`
+- Classes: `PascalCase`
+- Constants: `UPPER_SNAKE_CASE`
+- Private: `_leading_underscore`
+
+**Import Order:**
+```python
+# Standard library
+import logging
+from datetime import datetime
+
+# Third-party
+import aiohttp
+from aiogram import Bot
+
+# Local
+from src.config import get_config
+from src.services.bot_service import BotService
+```
+
+---
+
+## 🏗️ Architecture
+
+The project follows **Clean Architecture** principles with clear separation of concerns across multiple layers.
+
+### Project Structure
+
+```
+exchange-rate-bot/
+├── apps/                    # 📱 Application Layer
+│   ├── webhook_app.py      # FastAPI webhook server
+│   └── scheduler_app.py    # APScheduler for notifications
+│
+├── src/                     # 🎯 Core Application
+│   ├── handlers/           # Request handlers (controllers)
+│   ├── services/           # Business logic
+│   ├── repositories/       # Data access abstraction
+│   ├── infrastructure/     # External services (Telegram, HTTP)
+│   ├── scrapers/           # Bank data scrapers
+│   ├── database/           # ORM models & session management
+│   ├── templates/          # Template engine
+│   └── utils/              # Pure utility functions
+│
+├── templates/              # 📝 Jinja2 Message Templates
+├── alembic/                # 🔄 Database Migrations
+├── tests/                  # 🧪 Test Suite
+└── .volumes/               # 💾 Persistent Data (Docker)
+```
+
+### Architecture Layers
+
+**1. Application Layer (`apps/`)**
+- Entry points for different application modes
+- Framework integration (FastAPI, APScheduler)
+- Dependency wiring and composition root
+- Signal handling and lifecycle management
+
+**2. Handler Layer (`src/handlers/`)**
+- Telegram command routing
+- Minimal validation
+- Delegates to service layer
+- Returns formatted responses
+
+**3. Service Layer (`src/services/`)**
+- Business logic and orchestration
+- Data transformation
+- Error handling and logging
+- Coordinates repositories and scrapers
+
+**4. Repository Layer (`src/repositories/`)**
+- Data access abstraction
+- Database operations encapsulation
+- Uses Protocol classes for interfaces
+
+**5. Infrastructure Layer (`src/infrastructure/`)**
+- External service integration (Telegram API)
+- HTTP client management
+- Rate limiting
+- Webhook management
+
+**6. Scraper Layer (`src/scrapers/`)**
+- External data source integration
+- Fetches exchange rates from banks
+- Parse and normalize data
+- Strategy pattern implementation
+
+**7. Database Layer (`src/database/`)**
+- ORM models (User, Subscription, ExchangeRate)
+- Async session management
+- SQLAlchemy configuration
+
+**8. Template Layer (`src/templates/`, `templates/`)**
+- Jinja2 template engine
+- HTML templates for bot messages
+- Separates content from code
+
+### Design Principles
+
+**SOLID Principles:**
+- **Single Responsibility**: Each class has one reason to change
+- **Open/Closed**: Open for extension, closed for modification
+- **Liskov Substitution**: Derived classes substitutable for base classes
+- **Interface Segregation**: Clients don't depend on unused interfaces
+- **Dependency Inversion**: Depend on abstractions, not concretions
+
+**Design Patterns:**
+- **Repository Pattern**: Data access abstraction using Protocol classes
+- **Service Layer**: Business logic orchestration
+- **Strategy Pattern**: Different exchange rate providers (scrapers)
+- **Template Method**: Message rendering with Jinja2
+- **Dependency Injection**: Loose coupling throughout
+
+### Data Flow
+
+**Webhook Request:**
+```
+Telegram → FastAPI → BotHandlers → BotService
+                                        ↓
+                            ExchangeRateService + Repositories
+                                        ↓
+                                  Scrapers + Database
+                                        ↓
+                              TemplateEngine → Response
+```
+
+**Scheduled Notification:**
+```
+APScheduler → DailyNotificationService
+                        ↓
+          ExchangeRateService + Repository
+                        ↓
+                  Scrapers + Database
+                        ↓
+              BotService → TelegramNotification
+```
+
+### Technology Stack
+
+**Core:**
+- Python 3.13+ with async/await
+- aiogram 3.15+ (Telegram bot framework)
+- FastAPI (Web framework)
+- SQLAlchemy 2.0+ (Async ORM)
+
+**Infrastructure:**
+- aiohttp (Async HTTP client)
+- APScheduler (Job scheduling)
+- Alembic (Database migrations)
+- Jinja2 (Template engine)
+
+**Data Sources:**
+- SOAP API
+- REST API
+- Web Scraping
+
+**Development:**
+- uv (Package manager)
+- ruff (Linting and formatting)
+- pyright (Type checking)
+- pytest (Testing framework)
+
+### Why These Choices?
+
+**Protocol Classes over ABC:**
+- Structural typing (duck typing)
+- Less coupling
+- Better for testing and mocking
+- Superior type checking support
+
+**Jinja2 for Templates:**
+- Separates content from code
+- HTML native (Telegram HTML tags)
+- Powerful (loops, conditionals, filters)
+- Easy for non-programmers to edit
+
+**Repository Pattern:**
+- Abstracts database implementation
+- Easy to test (mock data access)
+- Flexible (can swap databases)
+- Single Responsibility
+
+**Service Layer:**
+- Centralizes business logic
+- Reusable across handlers/apps
+- Testable independently
+- Orchestrates multiple repositories
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. **Fork the repository**
+2. **Create a feature branch** (`git checkout -b feature/amazing-feature`)
+3. **Follow code style** (run `uv run ruff format`)
+4. **Add tests** for new features
+5. **Update documentation** as needed
+6. **Commit changes** (`git commit -m 'feat: add amazing feature'`)
+7. **Push to branch** (`git push origin feature/amazing-feature`)
+8. **Open a Pull Request**
+
+Commit Convention: use conventional commits
+
+## 🙏 Acknowledgments
+
+- **aiogram** - Excellent Telegram bot framework
+- **FastAPI** - Modern web framework
+
+
+## 🗺️ Roadmap
+
+- [ ] Historical rate tracking and charts
+- [ ] Rate change alerts
+- [ ] User preferences and customization
+- [ ] Internationalization (Spanish/English)
+- [ ] GraphQL API for rate queries
+- [ ] Redis caching layer
+- [ ] Prometheus metrics
