@@ -27,8 +27,7 @@ class TelegramBotWebhook(TelegramBotClient):
     def setup(self) -> None:
         """Initialize bot components and register handlers.
 
-        Note: BotHandlers will create a new database session for each request
-        that needs repository access. This follows the request-scoped session pattern.
+        Note: The repository creates a new database session per operation (request-scoped pattern).
         """
         self.dp = Dispatcher()
 
