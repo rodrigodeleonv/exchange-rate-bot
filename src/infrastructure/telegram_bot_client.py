@@ -19,6 +19,7 @@ class TelegramBotClient:
         """Initialize Telegram bot client."""
         self._load_config()
         self._bot: Bot | None = None
+        self._session: AiohttpSession | None = None
 
     def _load_config(self) -> None:
         """Load configuration from environment."""
@@ -37,10 +38,10 @@ class TelegramBotClient:
     def bot(self) -> Bot:
         """Get or create Bot instance with configured timeout."""
         if self._bot is None:
-            # Configure aiohttp session with timeout
+            # Configure aiohttp session with timeout (stored as instance variable)
             timeout = aiohttp.ClientTimeout(total=self.request_timeout)
-            session = AiohttpSession(timeout=timeout)
-            self._bot = Bot(token=self.bot_token, session=session)
+            self._session = AiohttpSession(timeout=timeout)
+            self._bot = Bot(token=self.bot_token, session=self._session)
             logger.info("Bot initialized with %s second timeout", self.request_timeout)
         return self._bot
 
@@ -77,7 +78,9 @@ class TelegramBotClient:
         logger.info("🗑️ Webhook deleted")
 
     async def close(self) -> None:
-        """Close bot session."""
-        if self._bot:
-            await self._bot.session.close()
-            self._bot = None
+        """Close bot session and cleanup resources."""
+        if self._session:
+            await self._session.close()
+            logger.debug("Bot session closed")
+        self._session = None
+        self._bot = None
