@@ -6,10 +6,11 @@ from typing import Any
 
 import uvicorn
 from aiogram.types import Update
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Header, Response
 
 from src.config import get_config
 from src.infrastructure.telegram_bot_webhook import TelegramBotWebhook
+from src.infrastructure.telegram_webhook_schemas import TelegramWebhookUpdate
 from src.logging_config import setup_logging
 
 setup_logging()
@@ -91,21 +92,36 @@ class WebhookApp:
         """Register FastAPI routes."""
 
         @app.post("/webhook")
-        async def webhook_handler(request: Request) -> Response:
+        async def webhook_handler(
+            telegram_update: TelegramWebhookUpdate,
+            x_telegram_bot_api_secret_token: str | None = Header(
+                None, description="Telegram Bot API Secret Token for webhook validation"
+            ),
+        ) -> Response:
             """Handle incoming webhook updates from Telegram."""
             try:
-                secret_token = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
-
                 if not self.bot_webhook.webhook_secret_token:
                     logger.error("Webhook secret token not configured - rejecting request")
                     return Response(status_code=401)
 
-                if secret_token != self.bot_webhook.webhook_secret_token:
+                if x_telegram_bot_api_secret_token != self.bot_webhook.webhook_secret_token:
                     logger.warning("Invalid secret token.")
                     return Response(status_code=401)
 
-                update_data = await request.json()
-                update = Update.model_validate(update_data)
+                logger.info("Received update_id: %s", telegram_update.update_id)
+                if telegram_update.message:
+                    user_id = (
+                        telegram_update.message.from_.id
+                        if telegram_update.message.from_
+                        else "unknown"
+                    )
+                    logger.info(
+                        "Message from user %s: %s",
+                        user_id,
+                        telegram_update.message.text,
+                    )
+
+                update = Update.model_validate(telegram_update.model_dump(by_alias=True))
                 await self.bot_webhook.process_update(update)
                 return Response(status_code=200)
             except Exception as e:
