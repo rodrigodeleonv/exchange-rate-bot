@@ -3,7 +3,14 @@
 import logging
 from pathlib import Path
 
-from jinja2 import Environment, FileSystemLoader, select_autoescape
+from jinja2 import (
+    Environment,
+    FileSystemLoader,
+    TemplateNotFound,
+    TemplateSyntaxError,
+    UndefinedError,
+    select_autoescape,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -46,13 +53,33 @@ class TemplateRenderer:
             Rendered HTML string
 
         Raises:
-            Exception: If template rendering fails
+            TemplateNotFound: If template file doesn't exist
+            TemplateSyntaxError: If template has syntax errors
+            UndefinedError: If template references undefined variables
         """
         try:
             template = self._env.get_template(template_name)
             return template.render(**context).strip()
 
+        except TemplateNotFound:
+            logger.error("Template not found: %s", template_name)
+            return "❌ Internal server error"
+
+        except TemplateSyntaxError as e:
+            logger.error("Template syntax error in %s: %s", template_name, e)
+            return "❌ Internal server error"
+
+        except UndefinedError as e:
+            logger.error("Undefined variable in template %s: %s", template_name, e)
+            return "❌ Internal server error"
+
         except Exception as e:
-            logger.error("Error rendering template %s: %s", template_name, e)
-            return f"❌ Error al generar mensaje: {template_name}"
+            # Fallback for unexpected errors - log with full traceback
+            logger.error(
+                "Unexpected error rendering template %s: %s",
+                template_name,
+                e,
+                exc_info=True,
+            )
+            return "❌ Internal server error"
 
