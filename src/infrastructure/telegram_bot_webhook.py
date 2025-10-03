@@ -45,6 +45,13 @@ class TelegramBotWebhook(TelegramBotClient):
         if not self.dp:
             raise RuntimeError("Dispatcher not initialized")
 
+        # Feed update to aiogram's Dispatcher for routing:
+        # 1. Dispatcher analyzes the Update object (message, callback_query, etc.)
+        # 2. Searches for handlers registered with @dp.message() decorators (see BotHandlers)
+        # 3. Applies filters (CommandStart, Command("help"), etc.) to find matching handler
+        # 4. Executes the matched handler (e.g., start_handler, help_handler, etc.)
+        # 5. Handler delegates to service layer for business logic
+        # 6. Handler sends response back to Telegram via message.answer()
         await self.dp.feed_update(bot=self.bot, update=update)
 
     async def start_polling(self) -> None:
