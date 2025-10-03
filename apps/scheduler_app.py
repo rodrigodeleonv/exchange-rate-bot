@@ -16,6 +16,7 @@ from apscheduler.triggers.cron import CronTrigger
 from src.config import get_config
 from src.infrastructure.telegram_notification import TelegramNotification
 from src.logging_config import setup_logging
+from src.presentation import TemplateRenderer
 from src.repositories import SessionScopedSubscriptionRepository
 from src.services import BotService, DailyNotificationService, ExchangeRateService
 
@@ -37,7 +38,9 @@ class ExchangeRateScheduler:
         exchange_service = ExchangeRateService()
         # Create repository that manages sessions per operation
         subscription_repo = SessionScopedSubscriptionRepository()
-        bot_service = BotService(exchange_service, subscription_repo)
+        # Create template renderer for message formatting
+        template_renderer = TemplateRenderer()
+        bot_service = BotService(exchange_service, subscription_repo, template_renderer)
         self.notification_service = DailyNotificationService(
             exchange_service=exchange_service,
             bot_service=bot_service,

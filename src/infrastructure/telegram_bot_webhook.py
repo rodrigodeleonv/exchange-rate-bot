@@ -6,6 +6,7 @@ from aiogram import Dispatcher
 from aiogram.types import Update
 
 from src.handlers.bot_handlers import BotHandlers
+from src.presentation import TemplateRenderer
 from src.repositories import SessionScopedSubscriptionRepository
 from src.services.bot_service import BotService
 from src.services.exchange_rate_service import ExchangeRateService
@@ -35,7 +36,9 @@ class TelegramBotWebhook(TelegramBotClient):
         exchange_service = ExchangeRateService()
         # Create a repository that creates sessions on-demand per request
         subscription_repo = SessionScopedSubscriptionRepository()
-        bot_service = BotService(exchange_service, subscription_repo)
+        # Create template renderer for message formatting
+        template_renderer = TemplateRenderer()
+        bot_service = BotService(exchange_service, subscription_repo, template_renderer)
 
         # Initialize handlers with auto-registration
         self.handlers = BotHandlers(self.dp, bot_service)
