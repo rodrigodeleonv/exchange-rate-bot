@@ -37,13 +37,6 @@ class BotService:
         self.subscription_repo = subscription_repo
         self.template_renderer = template_renderer
 
-        # Bank display names for templates that show exchange rates
-        self._bank_display_names = {
-            "banguat": "🏛️ Banguat (Oficial)",
-            "banrural": "🏦 Banrural (Banca Virtual)",
-            "nexa": "🏪 Nexa Banco (Compra)",
-        }
-
     async def get_start_message(self, user_name: str) -> str:
         """Generate start message for user."""
         return self.template_renderer.render("start.html", user_name=user_name)
@@ -71,7 +64,6 @@ class BotService:
                 "rates.html",
                 rates=rates,
                 best_bank=best_bank,
-                bank_display_names=self._bank_display_names,
             )
         except Exception as e:
             logger.error("Error fetching rates: %s", e)
@@ -105,5 +97,4 @@ class BotService:
             rates=rates,
             best_bank=best_bank,
             date_time=current_time,
-            bank_display_names=self._bank_display_names,
         )
