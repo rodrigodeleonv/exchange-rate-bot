@@ -3,15 +3,26 @@
 
 💱 <b>Tasas de cambio USD/GTQ:</b>
 
-{% for bank_name, rate in rates.items() %}
-{% set display_name = bank_display_names.get(bank_name, bank_name) %}
-{% if rate is not none %}
-{{ display_name }}: <b>Q{{ "%.4f"|format(rate) }}</b>{% if bank_name == best_bank %} ⭐{% endif %}
+{# Banguat #}
+{% if rates.banguat is not none %}
+🏛️ Banguat (Oficial): <b>Q{{ "%.4f"|format(rates.banguat) }}</b>{% if best_bank == 'banguat' %} ⭐{% endif %}
 {% else %}
-{{ display_name }}: ❌ No disponible
+🏛️ Banguat (Oficial): ❌ No disponible
 {% endif %}
 
-{% endfor %}
+{# Banrural #}
+{% if rates.banrural is not none %}
+🏦 Banrural (Banca Virtual): <b>Q{{ "%.4f"|format(rates.banrural) }}</b>{% if best_bank == 'banrural' %} ⭐{% endif %}
+{% else %}
+🏦 Banrural (Banca Virtual): ❌ No disponible
+{% endif %}
+
+{# Nexa #}
+{% if rates.nexa is not none %}
+🏪 Nexa Banco (Compra): <b>Q{{ "%.4f"|format(rates.nexa) }}</b>{% if best_bank == 'nexa' %} ⭐{% endif %}
+{% else %}
+🏪 Nexa Banco (Compra): ❌ No disponible
+{% endif %}
 
 {% if best_bank %}
 
