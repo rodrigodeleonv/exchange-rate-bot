@@ -13,12 +13,11 @@ from zoneinfo import ZoneInfo
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
+from src.bot import TelegramBot
 from src.config import get_config
-from src.infrastructure.telegram_notification import TelegramNotification
 from src.logging_config import setup_logging
-from src.presentation import TemplateRenderer
-from src.repositories import SessionScopedSubscriptionRepository
-from src.services import BotService, DailyNotificationService, ExchangeRateService
+from src.repositories import NotificationSubscriptionRepository
+from src.services import ExchangeRateService, MessageFormatter
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -33,20 +32,11 @@ class ExchangeRateScheduler:
         self.timezone = ZoneInfo(get_config().server.timezone)
         self._shutdown_requested = False
 
-        # Initialize notification service with dependencies
-        telegram_client = TelegramNotification()
-        exchange_service = ExchangeRateService()
-        # Create repository that manages sessions per operation
-        subscription_repo = SessionScopedSubscriptionRepository()
-        # Create template renderer for message formatting
-        template_renderer = TemplateRenderer()
-        bot_service = BotService(exchange_service, subscription_repo, template_renderer)
-        self.notification_service = DailyNotificationService(
-            exchange_service=exchange_service,
-            bot_service=bot_service,
-            telegram_client=telegram_client,
-            subscription_repo=subscription_repo,
-        )
+        # Initialize services
+        self.telegram_bot = TelegramBot()
+        self.exchange_service = ExchangeRateService()
+        self.message_formatter = MessageFormatter()
+        self.subscription_repo = NotificationSubscriptionRepository()
 
         # Setup graceful shutdown
         signal.signal(signal.SIGINT, self._signal_handler)
@@ -77,8 +67,30 @@ class ExchangeRateScheduler:
             current_time = datetime.now(self.timezone).strftime("%Y-%m-%d %H:%M:%S %Z")
             logger.info("⏰ Executing daily notification job at %s", current_time)
 
-            # Delegate to notification service
-            sent_count, error_count = await self.notification_service.send_daily_notifications()
+            # Get current exchange rates
+            logger.info("📊 Fetching current exchange rates...")
+            rates = await self.exchange_service.get_all_rates()
+
+            if not any(rates.values()):
+                logger.error("❌ No exchange rates available")
+                return
+
+            # Format notification message
+            message = self.message_formatter.format_daily_notification(rates)
+
+            # Get all subscribers and send notifications
+            chat_ids = [cid async for cid in self.subscription_repo.get_all_chat_ids()]
+
+            if not chat_ids:
+                logger.error("No subscribers found for daily notification")
+                logger.info("To add subscribers:")
+                logger.info("1. Send /subscribe command to your bot")
+                logger.info("2. Or manually add records to notification_subscriptions table")
+                return
+
+            sent_count, error_count = await self.telegram_bot.broadcast_to_chat_ids(
+                chat_ids=chat_ids, text=message
+            )
 
             logger.info("📊 Daily job completed - Sent: %s, Errors: %s", sent_count, error_count)
 
@@ -124,9 +136,9 @@ class ExchangeRateScheduler:
                 self.scheduler.shutdown(wait=True)
                 logger.info("✅ Scheduler stopped")
 
-            # Close notification service
-            await self.notification_service.close()
-            logger.info("✅ Notification service closed")
+            # Close telegram bot
+            await self.telegram_bot.close()
+            logger.info("✅ Telegram bot closed")
 
             logger.info("👋 Scheduler shutdown complete")
 
@@ -140,7 +152,7 @@ class ExchangeRateScheduler:
         """Run the daily notification job once (for testing)."""
         logger.info("🧪 Running daily notification job once for testing...")
         await self.daily_notification_job()
-        await self.notification_service.close()
+        await self.telegram_bot.close()
 
 
 async def main() -> None:

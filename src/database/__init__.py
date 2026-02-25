@@ -6,13 +6,12 @@ from .models import (
     Institution,
     TelegramNotificationSubscription,
 )
-from .session import DatabaseManager, get_session
+from .session import get_session
 
 __all__ = [
     "Base",
     "ExchangeRate",
     "Institution",
     "TelegramNotificationSubscription",
-    "DatabaseManager",
     "get_session",
 ]

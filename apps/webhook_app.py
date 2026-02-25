@@ -8,9 +8,11 @@ import uvicorn
 from aiogram.types import Update
 from fastapi import FastAPI, Request, Response
 
+from src.bot import TelegramBot
 from src.config import get_config
-from src.infrastructure.telegram_bot_webhook import TelegramBotWebhook
+from src.handlers.bot_handlers import BotHandlers
 from src.logging_config import setup_logging
+from src.services import ExchangeRateService, MessageFormatter, SubscriptionService
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -19,9 +21,9 @@ logger = logging.getLogger(__name__)
 class WebhookApp:
     """FastAPI webhook application encapsulating all web server logic."""
 
-    def __init__(self, bot_webhook: TelegramBotWebhook):
+    def __init__(self, telegram_bot: TelegramBot):
         """Initialize webhook app with bot instance."""
-        self.bot_webhook = bot_webhook
+        self.telegram_bot = telegram_bot
         self.app = self._create_app()
 
     def _create_app(self) -> FastAPI:
@@ -42,9 +44,18 @@ class WebhookApp:
         # Startup
         logger.info("🚀 Starting Exchange Rate Bot webhook...")
 
-        # Setup bot client (critical - must succeed)
+        # Setup bot dispatcher and handlers
         try:
-            self.bot_webhook.setup()
+            dp = self.telegram_bot.setup_dispatcher()
+
+            # Initialize services
+            exchange_service = ExchangeRateService()
+            message_formatter = MessageFormatter()
+            subscription_service = SubscriptionService()
+
+            # Register handlers
+            BotHandlers(dp, message_formatter, exchange_service, subscription_service)
+
             logger.info("✅ Bot client initialized successfully")
         except Exception as e:
             logger.error("❌ Critical error during bot setup: %s", e)
@@ -62,12 +73,12 @@ class WebhookApp:
 
     async def _setup_webhook(self) -> None:
         """Setup webhook with proper error handling."""
-        if not self.bot_webhook.webhook_url:
+        if not self.telegram_bot.webhook_url:
             logger.error("⚠️ WEBHOOK_URL not configured. Server running without webhook setup")
             return
 
         try:
-            await self.bot_webhook.set_webhook()
+            await self.telegram_bot.set_webhook()
             logger.info("✅ Webhook configured successfully")
         except Exception as webhook_error:
             logger.error("⚠️ Failed to set webhook: %s", webhook_error)
@@ -79,7 +90,7 @@ class WebhookApp:
         """Shutdown bot with proper error handling."""
         logger.info("🛑 Shutting down bot...")
         try:
-            await self.bot_webhook.close(
+            await self.telegram_bot.close(
                 cleanup_webhook=get_config().telegram.cleanup_webhook_on_shutdown
             )
             logger.info("✅ Bot shutdown completed successfully")
@@ -96,17 +107,17 @@ class WebhookApp:
             try:
                 secret_token = request.headers.get("X-Telegram-Bot-Api-Secret-Token")
 
-                if not self.bot_webhook.webhook_secret_token:
+                if not self.telegram_bot.webhook_secret_token:
                     logger.error("Webhook secret token not configured - rejecting request")
                     return Response(status_code=401)
 
-                if secret_token != self.bot_webhook.webhook_secret_token:
+                if secret_token != self.telegram_bot.webhook_secret_token:
                     logger.warning("Invalid secret token.")
                     return Response(status_code=401)
 
                 update_data = await request.json()
                 update = Update.model_validate(update_data)
-                await self.bot_webhook.process_update(update)
+                await self.telegram_bot.process_update(update)
                 return Response(status_code=200)
             except Exception as e:
                 logger.error("❌ Error processing webhook: %s", e)
@@ -117,7 +128,7 @@ class WebhookApp:
             """Bot status endpoint."""
             return {
                 "status": "healthy",
-                "webhook_url": self.bot_webhook.webhook_url,
+                "webhook_url": self.telegram_bot.webhook_url,
             }
 
     def run(self, run_dev: bool = False) -> None:
@@ -125,8 +136,8 @@ class WebhookApp:
         logger.info("🌐 Starting FastAPI server. Production mode: %s", not run_dev)
         uvicorn.run(
             self.app if not run_dev else "apps.webhook_app:create_app",
-            host=self.bot_webhook.host,
-            port=self.bot_webhook.port,
+            host=self.telegram_bot.host,
+            port=self.telegram_bot.port,
             log_level=get_config().log.level.lower(),
             reload=run_dev,
         )
@@ -134,7 +145,7 @@ class WebhookApp:
 
 def create_app() -> FastAPI:
     """Factory function to create FastAPI app (for uvicorn reload)."""
-    bot_instance = TelegramBotWebhook()
+    bot_instance = TelegramBot()
     app = WebhookApp(bot_instance)
     return app.app
 
@@ -142,7 +153,7 @@ def create_app() -> FastAPI:
 def main() -> None:
     """Main application entry point."""
     # Create bot and app instances
-    bot_instance = TelegramBotWebhook()
+    bot_instance = TelegramBot()
     app = WebhookApp(bot_instance)
 
     app.run(run_dev=not get_config().production)

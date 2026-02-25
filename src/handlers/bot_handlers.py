@@ -5,16 +5,24 @@ from aiogram.enums import ParseMode
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
 
-from src.services.bot_service import BotService
+from src.services import ExchangeRateService, MessageFormatter, SubscriptionService
 
 
 class BotHandlers:
     """Telegram bot handlers with decorator-based registration."""
 
-    def __init__(self, dp: Dispatcher, bot_service: BotService) -> None:
+    def __init__(
+        self,
+        dp: Dispatcher,
+        message_formatter: MessageFormatter,
+        exchange_service: ExchangeRateService,
+        subscription_service: SubscriptionService,
+    ) -> None:
         """Initialize handlers and auto-register with dispatcher."""
         self.dp = dp
-        self.bot_service = bot_service
+        self.message_formatter = message_formatter
+        self.exchange_service = exchange_service
+        self.subscription_service = subscription_service
         self._register_handlers()
 
     def _register_handlers(self) -> None:
@@ -24,30 +32,30 @@ class BotHandlers:
         async def start_handler(message: Message) -> None:
             """Handle /start command."""
             user_name = message.from_user.first_name if message.from_user else "Usuario"
-            response = await self.bot_service.get_start_message(user_name)
+            response = self.message_formatter.format_start_message(user_name)
             await message.answer(response, parse_mode=ParseMode.HTML)
 
         @self.dp.message(Command("help"))
         async def help_handler(message: Message) -> None:
             """Handle /help command."""
-            response = await self.bot_service.get_help_message()
+            response = self.message_formatter.format_help_message()
             await message.answer(response, parse_mode=ParseMode.HTML)
 
         @self.dp.message(Command("ping"))
         async def ping_handler(message: Message) -> None:
             """Handle /ping command."""
-            response = await self.bot_service.get_ping_message()
+            response = self.message_formatter.format_ping_message()
             await message.answer(response, parse_mode=ParseMode.HTML)
 
         @self.dp.message(Command("rates"))
         async def rates_handler(message: Message) -> None:
             """Handle /rates command."""
-            # Send loading message first
-            loading_response = await self.bot_service.get_loading_message()
+            loading_response = self.message_formatter.format_loading_message()
             loading_msg = await message.answer(loading_response, parse_mode=ParseMode.HTML)
 
             try:
-                response = await self.bot_service.get_rates_response()
+                rates = await self.exchange_service.get_all_rates()
+                response = self.message_formatter.format_rates_message(rates)
                 await loading_msg.edit_text(response, parse_mode=ParseMode.HTML)
             except Exception:
                 error_response = (
@@ -66,7 +74,8 @@ class BotHandlers:
                 return
 
             chat_id = message.chat.id
-            response = await self.bot_service.subscribe_user(chat_id)
+            await self.subscription_service.subscribe_user(chat_id)
+            response = self.message_formatter.format_subscription_success()
             await message.answer(response, parse_mode=ParseMode.HTML)
 
         @self.dp.message(Command("unsubscribe"))
@@ -79,5 +88,9 @@ class BotHandlers:
                 return
 
             chat_id = message.chat.id
-            response = await self.bot_service.unsubscribe_user(chat_id)
+            success = await self.subscription_service.unsubscribe_user(chat_id)
+            if success:
+                response = self.message_formatter.format_unsubscription_success()
+            else:
+                response = self.message_formatter.format_unsubscription_not_found()
             await message.answer(response, parse_mode=ParseMode.HTML)
