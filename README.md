@@ -350,25 +350,19 @@ class ExchangeRateService:
 
 Add handler in `src/handlers/bot_handlers.py`:
 ```python
-async def new_command_handler(self, message: Message):
+@self.dp.message(Command("newcommand"))
+async def new_command_handler(message: Message) -> None:
     """Handle /newcommand."""
-    result = await self.bot_service.handle_new_command(message.from_user.id)
-    await message.answer(result)
+    # Format response using MessageFormatter
+    response = self.message_formatter.format_new_command()
+    await message.answer(response, parse_mode=ParseMode.HTML)
 ```
 
-Register in `src/infrastructure/telegram_bot_webhook.py`:
+Add method in `src/services/message_formatter.py`:
 ```python
-self.dp.message.register(
-    self.handlers.new_command_handler,
-    Command("newcommand")
-)
-```
-
-Add business logic in `src/services/bot_service.py`:
-```python
-async def handle_new_command(self, user_id: int) -> str:
-    """Handle new command logic."""
-    return self.template_engine.render("new_command.html", {})
+def format_new_command(self) -> str:
+    """Format new command response."""
+    return render_template("new_command.html")
 ```
 
 Create template in `templates/messages/new_command.html`:
@@ -416,13 +410,27 @@ exchange-rate-bot/
 │   └── scheduler_app.py    # APScheduler for notifications
 │
 ├── src/                     # 🎯 Core Application
-│   ├── handlers/           # Request handlers (controllers)
-│   ├── services/           # Business logic
-│   ├── repositories/       # Data access abstraction
-│   ├── infrastructure/     # External services (Telegram, HTTP)
-│   ├── scrapers/           # Bank data scrapers
-│   ├── database/           # ORM models & session management
-│   └── utils/              # Pure utility functions
+│   ├── bot/                # 🤖 Telegram bot (unified)
+│   │   └── telegram_bot.py # Webhook + Polling + Notifications
+│   ├── handlers/           # 🎮 Request handlers (controllers)
+│   │   └── bot_handlers.py # Command routing
+│   ├── services/           # 💼 Business logic
+│   │   ├── exchange_rate_service.py   # Rate fetching
+│   │   ├── message_formatter.py       # Message formatting
+│   │   └── subscription_service.py    # Subscription management
+│   ├── repositories/       # 💾 Data access
+│   │   └── notification_subscription.py
+│   ├── scrapers/           # 🏦 Bank data scrapers
+│   │   ├── banguat_client.py
+│   │   ├── banrural_scraper.py
+│   │   └── nexa_scraper.py
+│   ├── database/           # 🗄️ ORM & session management
+│   │   ├── models.py
+│   │   └── session.py
+│   └── utils/              # 🔧 Utilities
+│       ├── templates.py    # Jinja2 rendering
+│       ├── tz_utils.py
+│       └── url_utils.py
 │
 ├── templates/              # 📝 Jinja2 Message Templates
 ├── alembic/                # 🔄 Database Migrations
@@ -433,44 +441,43 @@ exchange-rate-bot/
 ### Architecture Layers
 
 **1. Application Layer (`apps/`)**
-- Entry points for different application modes
+- Entry points for webhook and scheduler modes
 - Framework integration (FastAPI, APScheduler)
-- Dependency wiring and composition root
-- Signal handling and lifecycle management
+- Dependency injection and composition root
+- Lifecycle management
 
-**2. Handler Layer (`src/handlers/`)**
-- Telegram command routing
+**2. Bot Layer (`src/bot/`)**
+- Unified Telegram bot client
+- Webhook and polling support
+- Message broadcasting
+- Bot lifecycle management
+
+**3. Handler Layer (`src/handlers/`)**
+- Command routing (/start, /rates, /subscribe, etc.)
 - Minimal validation
-- Delegates to service layer
+- Delegates to services
 - Returns formatted responses
 
-**3. Service Layer (`src/services/`)**
-- Business logic and orchestration
-- Data transformation
-- Error handling and logging
-- Coordinates repositories and scrapers
+**4. Service Layer (`src/services/`)**
+- **ExchangeRateService**: Fetches rates from all banks
+- **MessageFormatter**: Formats messages using templates
+- **SubscriptionService**: Manages user subscriptions
+- Pure business logic, no framework dependencies
 
-**4. Repository Layer (`src/repositories/`)**
-- Data access abstraction
-- Database operations encapsulation
-- Uses Protocol classes for interfaces
-
-**5. Infrastructure Layer (`src/infrastructure/`)**
-- External service integration (Telegram API)
-- HTTP client management
-- Rate limiting
-- Webhook management
+**5. Repository Layer (`src/repositories/`)**
+- Simple data access (no Protocol overhead)
+- Manages own database sessions
+- CRUD operations for subscriptions
 
 **6. Scraper Layer (`src/scrapers/`)**
-- External data source integration
-- Fetches exchange rates from banks
-- Parse and normalize data
-- Strategy pattern implementation
+- Bank-specific rate fetching
+- Strategy pattern for different sources
+- Async HTTP operations
 
 **7. Database Layer (`src/database/`)**
-- ORM models (User, Subscription, ExchangeRate)
-- Async session management
-- SQLAlchemy configuration
+- SQLAlchemy models
+- Simple session management
+- Async operations
 
 ### Design Principles
 
@@ -482,34 +489,30 @@ exchange-rate-bot/
 - **Dependency Inversion**: Depend on abstractions, not concretions
 
 **Design Patterns:**
-- **Repository Pattern**: Data access abstraction using Protocol classes
-- **Service Layer**: Business logic orchestration
+- **Repository Pattern**: Simple data access (no Protocol overhead)
+- **Service Layer**: Business logic with single responsibilities
 - **Strategy Pattern**: Different exchange rate providers (scrapers)
-- **Template Method**: Message rendering with Jinja2
-- **Dependency Injection**: Loose coupling throughout
+- **Composition over Inheritance**: Services composed, not inherited
+- **Dependency Injection**: Constructor injection throughout
 
 ### Data Flow
 
 **Webhook Request:**
 ```
-Telegram → FastAPI → BotHandlers → BotService
-                                        ↓
-                            ExchangeRateService + Repositories
-                                        ↓
-                                  Scrapers + Database
-                                        ↓
-                              TemplateEngine → Response
+Telegram → FastAPI → BotHandlers → MessageFormatter + ExchangeRateService
+                                              ↓
+                                        Scrapers
+                                              ↓
+                                        Response
 ```
 
 **Scheduled Notification:**
 ```
-APScheduler → DailyNotificationService
-                        ↓
-          ExchangeRateService + Repository
-                        ↓
-                  Scrapers + Database
-                        ↓
-              BotService → TelegramNotification
+APScheduler → Scheduler → ExchangeRateService + MessageFormatter
+                                    ↓
+                              Scrapers + Repository
+                                    ↓
+                          TelegramBot.broadcast()
 ```
 
 ### Technology Stack
@@ -539,11 +542,11 @@ APScheduler → DailyNotificationService
 
 ### Why These Choices?
 
-**Protocol Classes over ABC:**
-- Structural typing (duck typing)
-- Less coupling
-- Better for testing and mocking
-- Superior type checking support
+**Simplified Architecture (2024 Refactoring):**
+- Removed unnecessary abstractions (Protocols for single implementations)
+- Consolidated Telegram classes (3 → 1)
+- Direct service usage instead of orchestration layers
+- 40% less code while maintaining SOLID principles
 
 **Jinja2 for Templates:**
 - Separates content from code
@@ -551,17 +554,18 @@ APScheduler → DailyNotificationService
 - Powerful (loops, conditionals, filters)
 - Easy for non-programmers to edit
 
-**Repository Pattern:**
-- Abstracts database implementation
-- Easy to test (mock data access)
-- Flexible (can swap databases)
+**Simple Repository Pattern:**
+- No Protocol overhead for single implementations
+- Manages own database sessions
+- Easy to test and understand
 - Single Responsibility
 
-**Service Layer:**
-- Centralizes business logic
-- Reusable across handlers/apps
-- Testable independently
-- Orchestrates multiple repositories
+**Focused Services:**
+- Each service has one clear responsibility
+- MessageFormatter: Only formatting
+- SubscriptionService: Only subscriptions
+- ExchangeRateService: Only rate fetching
+- Testable independently without complex mocks
 
 ---
 
