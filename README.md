@@ -106,7 +106,7 @@ uv run python -m apps.scheduler_app
 uv run python -m apps.scheduler_app --run-once
 
 # Show help
-python main.py help
+uv run python main.py help
 ```
 
 > **Note:** `--run-once` sends notifications only to **subscribed** users. If there are no subscribers, it will log "No subscribers found" and exit. Use `/subscribe` in Telegram first to register. The `/rates` command works without subscription — it responds directly to whoever sends it.
