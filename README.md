@@ -94,20 +94,22 @@ docker compose logs -f
 
 ## 🚀 Quick Start
 
-### Run the Bot
+### Run the Bot in Development Mode
 ```bash
 # Start webhook server (default)
-python main.py
+uv run python main.py
 
 # Start scheduler
-python -m apps.scheduler_app
+uv run python -m apps.scheduler_app
 
 # Test scheduler (run once)
-python -m apps.scheduler_app --run-once
+uv run python -m apps.scheduler_app --run-once
 
 # Show help
-python main.py help
+uv run python main.py help
 ```
+
+> **Note:** `--run-once` sends notifications only to **subscribed** users. If there are no subscribers, it will log "No subscribers found" and exit. Use `/subscribe` in Telegram first to register. The `/rates` command works without subscription — it responds directly to whoever sends it.
 
 ### Available Applications
 - **🌐 Webhook Server**: FastAPI-based real-time bot interactions

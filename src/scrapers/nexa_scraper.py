@@ -27,17 +27,13 @@ class NexaScraper(ScraperBase):
             "Accept-Language": get_config().scraper_header.accept_language,
             "Accept-Encoding": get_config().scraper_header.accept_encoding,
             "Connection": get_config().scraper_header.connection,
-            "Upgrade-Insecure-Requests": (
-                get_config().scraper_header.upgrade_insec_req
-            ),
+            "Upgrade-Insecure-Requests": (get_config().scraper_header.upgrade_insec_req),
         }
 
     async def get_usd_buy_rate(self) -> float | None:
         """Get USD buy rate (Compra) from Nexa Banco website."""
         try:
-            async with aiohttp.ClientSession(
-                timeout=self.timeout, headers=self.headers
-            ) as session:
+            async with aiohttp.ClientSession(timeout=self.timeout, headers=self.headers) as session:
                 async with session.get(self.BASE_URL) as response:
                     response.raise_for_status()
                     html_content = await response.text()

@@ -25,9 +25,7 @@ class BanruralScraper(ScraperBase):
             "Accept-Language": get_config().scraper_header.accept_language,
             "Accept-Encoding": get_config().scraper_header.accept_encoding,
             "Connection": get_config().scraper_header.connection,
-            "Upgrade-Insecure-Requests": (
-                get_config().scraper_header.upgrade_insec_req
-            ),
+            "Upgrade-Insecure-Requests": (get_config().scraper_header.upgrade_insec_req),
         }
 
     async def get_usd_buy_rate(self) -> float | None:
@@ -50,9 +48,7 @@ class BanruralScraper(ScraperBase):
         api_headers["X-Requested-With"] = "XMLHttpRequest"
 
         try:
-            async with aiohttp.ClientSession(
-                timeout=self.timeout, headers=api_headers
-            ) as session:
+            async with aiohttp.ClientSession(timeout=self.timeout, headers=api_headers) as session:
                 async with session.get(api_url) as response:
                     if response.status == 200:
                         data = await response.json()

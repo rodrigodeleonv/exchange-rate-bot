@@ -15,6 +15,9 @@ logger = logging.getLogger(__name__)
 
 Rates = Mapping[str, float | None]
 
+# Banks excluded from best rate selection (reference-only, e.g. central bank)
+REFERENCE_ONLY_BANKS: frozenset[str] = frozenset({"banguat"})
+
 
 class ExchangeRateService:
     """Service to aggregate exchange rates from multiple sources."""

@@ -19,12 +19,6 @@ This is an exchange rate bot that should:
 - Implement robust input validation
 - Consider edge cases and error handling
 
-### When suggesting architecture:
-- Prefer simple and maintainable patterns
-- Suggest clear separation of responsibilities
-- Consider future scalability
-- Document important architectural decisions
-
 ### When working with APIs:
 - Implement retry logic for failed calls
 - Use appropriate rate limiting

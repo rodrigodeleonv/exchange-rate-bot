@@ -62,7 +62,5 @@ class TelegramNotification(TelegramBotClient):
             if delay_seconds > 0:
                 await asyncio.sleep(delay_seconds)
 
-        logger.info(
-            "📊 Broadcast completed - Sent: %s, Errors: %s", sent_count, error_count
-        )
+        logger.info("📊 Broadcast completed - Sent: %s, Errors: %s", sent_count, error_count)
         return sent_count, error_count
