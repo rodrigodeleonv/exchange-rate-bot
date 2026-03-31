@@ -8,7 +8,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from src.database import get_session
 from src.repositories import NotificationSubscriptionRepository
-from src.services.exchange_rate_service import ExchangeRateService, Rates
+from src.services.exchange_rate_service import REFERENCE_ONLY_BANKS, ExchangeRateService, Rates
 from src.utils.tz_utils import get_tz
 
 logger = logging.getLogger(__name__)
@@ -66,13 +66,20 @@ class BotService:
         """Generate loading message for rate requests."""
         return self._render("loading.html")
 
+    def _find_best_bank(self, rates: Rates) -> str | None:
+        """Find the bank with the highest rate, excluding reference-only banks."""
+        eligible = {
+            k: v
+            for k, v in rates.items()
+            if v is not None and k not in REFERENCE_ONLY_BANKS
+        }
+        return max(eligible, key=lambda k: eligible[k]) if eligible else None
+
     async def get_rates_response(self) -> str:
         """Get formatted exchange rates response."""
         try:
             rates = await self.exchange_service.get_all_rates()
-            # Compute best bank here (business logic belongs in service)
-            valid_rates = {k: v for k, v in rates.items() if v is not None}
-            best_bank = max(valid_rates, key=lambda k: valid_rates[k]) if valid_rates else None
+            best_bank = self._find_best_bank(rates)
             return self._render("rates.html", rates=rates, best_bank=best_bank)
         except Exception as e:
             logger.error("Error fetching rates: %s", e)
@@ -101,8 +108,7 @@ class BotService:
     async def format_daily_notification(self, rates: Rates) -> str:
         """Format daily notification message."""
         current_time = datetime.now(get_tz()).strftime("%d/%m/%Y %H:%M")
-        valid_rates = {k: v for k, v in rates.items() if v is not None}
-        best_bank = max(valid_rates, key=lambda k: valid_rates[k]) if valid_rates else None
+        best_bank = self._find_best_bank(rates)
         return self._render(
             "daily_notification.html",
             rates=rates,

@@ -7,8 +7,10 @@
 {% set display_name = bank_display_names.get(bank_name, bank_name) %}
 {% if rate is not none %}
 {{ display_name }}: <b>Q{{ "%.4f"|format(rate) }}</b>{% if bank_name == best_bank %} ⭐{% endif %}
+
 {% else %}
 {{ display_name }}: ❌ No disponible
+
 {% endif %}
 {% endfor %}
 
