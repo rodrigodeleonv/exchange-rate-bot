@@ -3,6 +3,7 @@
 import logging
 
 from aiogram import Bot
+from aiogram.enums import ParseMode
 
 from src.config import get_config
 from src.utils import build_url
@@ -44,7 +45,7 @@ class TelegramBotClient:
             chat_id: Telegram chat ID
             text: Message text to send
         """
-        await self.bot.send_message(chat_id=chat_id, text=text)
+        await self.bot.send_message(chat_id=chat_id, text=text, parse_mode=ParseMode.HTML)
 
     async def set_webhook(self) -> None:
         """Set webhook URL for the bot."""
