@@ -17,12 +17,6 @@ trigger: always_on
 - Example: `logger.info("Processing %s items", count)` instead of `logger.info(f"Processing {count} items")`
 - This prevents unnecessary string formatting when logging is disabled
 
-## Architecture
-- Separate business logic from presentation
-- Use async/await for network operations
-- Implement robust error handling
-- Use logging instead of print statements
-
 ## Package Management
 - Use uv as package manager
 - Run commands with `uv run <COMMAND>`
@@ -37,44 +31,14 @@ trigger: always_on
   2. `uv run python main.py` (start new instance)
 - Apply this rule for any command that starts a server, bot, or long-running process
 
-## APIs and Dependencies
-- Use httpx for HTTP calls
-- Implement rate limiting for external APIs
-- Cache responses when appropriate
-- Use environment variables for API keys
-
-## Testing
-- Write unit tests for critical functions
-- Use pytest as testing framework
-- Run tests with `uv run pytest`
-- Mock external API calls in tests
-
 ## Code Quality
-- Use ruff for linting and formatting
-- Use pyright for static type checking
 - Run quality checks with `uv run ruff check` and `uv run pyright`
 - Fix formatting with `uv run ruff format`
+- Run tests with `uv run pytest`
 
-## SOLID Principles
-- **Single Responsibility**: Each class should have only one reason to change
-- **Open/Closed**: Classes should be open for extension, closed for modification
-- **Liskov Substitution**: Derived classes must be substitutable for their base classes
-- **Interface Segregation**: Clients should not depend on interfaces they don't use
-- **Dependency Inversion**: Depend on abstractions, not concretions
-
-## Design Patterns
-- Suggest appropriate design patterns when beneficial:
-  - **Strategy Pattern**: For different exchange rate providers
-  - **Factory Pattern**: For creating API clients or handlers
-  - **Observer Pattern**: For rate change notifications
-  - **Command Pattern**: For bot command handling
-  - **Repository Pattern**: For data access abstraction
-  - **Dependency Injection**: For loose coupling and testability
-- Always explain why a pattern is recommended
+## General Principles
+- Favor readability over abstraction
+- Use async/await for network operations
 - Prefer composition over inheritance
-- Use Protocol classes for defining interfaces in Python
-
-## Documentation
-- README.md should include installation instructions
-- Document API endpoints if applicable
-- Include usage examples
+- Use environment variables for API keys and secrets
+- When in doubt, prefer a simple function over a new class
