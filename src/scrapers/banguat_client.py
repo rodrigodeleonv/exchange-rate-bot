@@ -35,9 +35,7 @@ class BanguatClient(ScraperBase):
 
         try:
             async with aiohttp.ClientSession(timeout=self.timeout) as session:
-                async with session.post(
-                    self.BASE_URL, data=soap_body, headers=headers
-                ) as response:
+                async with session.post(self.BASE_URL, data=soap_body, headers=headers) as response:
                     response.raise_for_status()
                     xml_content = await response.text()
 

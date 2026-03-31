@@ -69,9 +69,7 @@ class BotService:
     def _find_best_bank(self, rates: Rates) -> str | None:
         """Find the bank with the highest rate, excluding reference-only banks."""
         eligible = {
-            k: v
-            for k, v in rates.items()
-            if v is not None and k not in REFERENCE_ONLY_BANKS
+            k: v for k, v in rates.items() if v is not None and k not in REFERENCE_ONLY_BANKS
         }
         return max(eligible, key=lambda k: eligible[k]) if eligible else None
 
